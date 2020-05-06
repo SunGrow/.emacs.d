@@ -34,6 +34,8 @@
 
 ;; Theme init
 
+(unless (package-installed-p 'zenburn-theme)
+  (package-install 'zenburn-theme))
 (require 'zenburn-theme)
 
 ;; use variable-pitch fonts for some headings and titles
