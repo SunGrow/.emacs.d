@@ -51,15 +51,21 @@
 ;; Evil
 
 ;; Enable Evil
+(unless (package-installed-p 'evil)
+  (package-install 'evil))
 (require 'evil)
 (evil-mode 1)
 
 ;; Enable Ivy
+(unless (package-installed-p 'ivy)
+  (package-install 'ivy))
 (require 'ivy)
 (ivy-mode 1)
 
 ;; Enable Projectile
 
+(unless (package-installed-p 'projectile)
+  (package-install 'projectile))
 (require 'projectile)
 (projectile-mode +1)
 (setq projectile-project-search-path '("/Users/LazyF/Documents"))
@@ -67,18 +73,34 @@
 
 ;; Enable Treemacs
 
+(unless (package-installed-p 'treemacs)
+  (package-install 'treemacs))
+(unless (package-installed-p 'treemacs-evil)
+  (package-install 'treemacs-evil))
+(unless (package-installed-p 'treemacs-projectile)
+  (package-install 'treemacs-projectile))
 (require 'treemacs)
 (require 'treemacs-evil)
 (require 'treemacs-projectile)
 
 ;; Company mode
 
-(require 'company)
+(unless (package-installed-p 'company)
+  (package-install 'company))
 (add-hook 'after-init-hook 'global-company-mode)
+(require 'company)
 
 ;; CMake
 
+(unless (package-installed-p 'cmake-mode)
+  (package-install 'cmake-mode))
 (require 'cmake-mode)
+
+;; EditorConfig
+(unless (package-installed-p 'editorconfig)
+  (package-install 'editorconfig))
+(require 'editorconfig)
+(editorconfig-mode 1)
 
 ;; Keybindings
 
