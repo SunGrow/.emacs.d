@@ -12,9 +12,16 @@
 (set-frame-font "JetBrains Mono 10" nil t)
 
 ;; Set tabs
-;;(setq-default indent-tabs-mode t)
-;;(setq-default tab-width 4)
-;;(defvaralias 'c-basic-offset 'tab-width)
+(setq indent-tabs-mode t)
+(setq tab-width 2)
+(defvaralias 'c-basic-offset 'tab-width)
+(setq-default tab-always-indent 'complete)
+(defun my-insert-tab-char ()
+  "Insert a tab char. (ASCII 9, \t)"
+  (interactive)
+  (insert "\t"))
+
+(global-set-key (kbd "TAB") 'my-insert-tab-char)
 
 ;; Disabling the menu bar
 (menu-bar-mode -1) 
@@ -97,12 +104,6 @@
 (unless (package-installed-p 'cmake-mode)
   (package-install 'cmake-mode))
 (require 'cmake-mode)
-
-;; EditorConfig
-(unless (package-installed-p 'editorconfig)
-  (package-install 'editorconfig))
-(require 'editorconfig)
-(editorconfig-mode 1)
 
 ;; Keybindings
 
