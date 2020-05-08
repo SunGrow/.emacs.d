@@ -16,6 +16,8 @@
 	
 		(unless (package-installed-p 'evil)
 		  (package-install 'evil))
+		(unless (package-installed-p 'evil-leader)
+		  (package-install 'evil-leader))
 		
 		(unless (package-installed-p 'ivy)
 		  (package-install 'ivy))
@@ -108,6 +110,8 @@
 
 ;; Enable Evil
 (require 'evil)
+(require 'evil-leader)
+(global-evil-leader-mode)
 (evil-mode 1)
 
 ;; Enable Ivy
@@ -118,7 +122,7 @@
 ;; Too slow on Windows to use.
 
 ;; Git
-(require 'git)
+;;(require 'git)
 
 
 ;; Enable Projectile
@@ -151,7 +155,6 @@
 
 (define-key company-active-map (kbd "C-j") #'company-select-next)
 (define-key company-active-map (kbd "C-k") #'company-select-previous)
-
 
 ;; Ivy keybindings
 
@@ -188,7 +191,7 @@
     ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
  '(package-selected-packages
    (quote
-    (git cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+    (evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
