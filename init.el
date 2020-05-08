@@ -184,7 +184,8 @@
    "b" 'switch-to-buffer
    "k" 'kill-buffer
    "w" 'evil-window-map
-   "o p" 'treemacs)
+   "o p" 'treemacs
+   "v" 'vc-prefix-map)
 
 ;; Treemacs keybindings
 
