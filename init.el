@@ -20,6 +20,9 @@
 		(unless (package-installed-p 'ivy)
 		  (package-install 'ivy))
 		
+		(unless (package-installed-p 'git)
+		  (package-install 'git))
+
 		(unless (package-installed-p 'projectile)
 		  (package-install 'projectile))
 		
@@ -67,7 +70,7 @@
 ;; Turn off the beep
 (setq visible-bell 1)
 
-;; Startup Buffer Setup
+;; Startup Buffer Sivyetup
 
 (setq inhibit-startup-screen t)
 
@@ -113,6 +116,10 @@
 
 ;; MaGit
 ;; Too slow on Windows to use.
+
+;; Git
+(require 'git)
+
 
 ;; Enable Projectile
 
@@ -181,7 +188,7 @@
     ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
  '(package-selected-packages
    (quote
-    (cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+    (git cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
