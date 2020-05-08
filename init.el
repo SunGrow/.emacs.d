@@ -6,6 +6,43 @@
 (package-initialize)
 ;; (package-refresh-contents)
 
+;; Package Download
+
+(defun init-packages ()
+	"Init config packages"
+	( 
+		(unless (package-installed-p 'zenburn-theme)
+		  (package-install 'zenburn-theme))
+	
+		(unless (package-installed-p 'evil)
+		  (package-install 'evil))
+		
+		(unless (package-installed-p 'ivy)
+		  (package-install 'ivy))
+		
+		(unless (package-installed-p 'magit)
+		  (package-install 'magit))
+		(unless (package-installed-p 'evil-magit)
+		  (package-install 'evil-magit))
+		
+		(unless (package-installed-p 'projectile)
+		  (package-install 'projectile))
+		
+		(unless (package-installed-p 'treemacs)
+		  (package-install 'treemacs))
+		(unless (package-installed-p 'treemacs-evil)
+		  (package-install 'treemacs-evil))
+		(unless (package-installed-p 'treemacs-projectile)
+		  (package-install 'treemacs-projectile))
+		
+		(unless (package-installed-p 'company)
+		  (package-install 'company))
+		
+		(unless (package-installed-p 'cmake-mode)
+		  (package-install 'cmake-mode))
+	)
+	(interactive "r")
+)
 
 ;; Looks setup
 
@@ -41,8 +78,6 @@
 
 ;; Theme init
 
-(unless (package-installed-p 'zenburn-theme)
-  (package-install 'zenburn-theme))
 (require 'zenburn-theme)
 
 ;; use variable-pitch fonts for some headings and titles
@@ -53,6 +88,20 @@
 
 ;; scale headings in outline-mode
 (setq zenburn-scale-outline-headlines t)
+
+(setq zenburn-override-colors-alist
+      '(
+    	("zenburn-fg"       . "#DCDCCC") ;; Menu text
+      	("zenburn-fg+1"     . "#FFFFCF") ;; Cursor
+
+      	("zenburn-bg-1"     . "#7F7460") ;; Status line + Selection
+      	("zenburn-bg"       . "#31312D") ;; Main BG
+      	("zenburn-bg+1"     . "#3D3D3A") ;; Left and Right borders
+    	("zenburn-yellow"   . "#F1E0AF") ;; Status line curr file name and Menu Highlight
+    	("zenburn-green-2"  . "#8F7B3F") ;; Comment semicolumn
+    	("zenburn-green"    . "#8F8B3B") ;; Comment text
+    	("zenburn-green+1"  . "#0F0F0F") ;; Status line Side text
+       	))
 ;; Set Theme
 (load-theme 'zenburn t)
 
@@ -60,21 +109,19 @@
 ;; Evil
 
 ;; Enable Evil
-(unless (package-installed-p 'evil)
-  (package-install 'evil))
 (require 'evil)
 (evil-mode 1)
 
 ;; Enable Ivy
-(unless (package-installed-p 'ivy)
-  (package-install 'ivy))
 (require 'ivy)
 (ivy-mode 1)
 
+;; MaGit
+(require 'magit)
+(require 'evil-magit)
+
 ;; Enable Projectile
 
-(unless (package-installed-p 'projectile)
-  (package-install 'projectile))
 (require 'projectile)
 (projectile-mode +1)
 (setq projectile-project-search-path '("/Users/LazyF/Documents"))
@@ -82,27 +129,17 @@
 
 ;; Enable Treemacs
 
-(unless (package-installed-p 'treemacs)
-  (package-install 'treemacs))
-(unless (package-installed-p 'treemacs-evil)
-  (package-install 'treemacs-evil))
-(unless (package-installed-p 'treemacs-projectile)
-  (package-install 'treemacs-projectile))
 (require 'treemacs)
 (require 'treemacs-evil)
 (require 'treemacs-projectile)
 
 ;; Company mode
 
-(unless (package-installed-p 'company)
-  (package-install 'company))
 (add-hook 'after-init-hook 'global-company-mode)
 (require 'company)
 
 ;; CMake
 
-(unless (package-installed-p 'cmake-mode)
-  (package-install 'cmake-mode))
 (require 'cmake-mode)
 
 ;; Keybindings
@@ -150,7 +187,7 @@
     ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
  '(package-selected-packages
    (quote
-    (cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+    (evil-magit magit cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
