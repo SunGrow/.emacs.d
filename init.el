@@ -111,7 +111,8 @@
 ;; Enable Evil
 (require 'evil)
 (require 'evil-leader)
-(global-evil-leader-mode)
+(evil-leader/set-leader "<SPC>")
+(evil-leader-mode)
 (evil-mode 1)
 
 ;; Enable Ivy
@@ -174,6 +175,12 @@
 (global-unset-key (kbd "C-p"))
 (define-key evil-normal-state-map (kbd "C-p") nil)
 (define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
+
+(evil-leader/set-key
+   "p" 'projectile-command-map
+   "e" 'find-file
+   "b" 'switch-to-buffer
+   "k" 'kill-buffer)
 
 ;; Treemacs keybindings
 
