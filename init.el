@@ -123,7 +123,9 @@
 ;; Too slow on Windows to use.
 
 ;; Git
-;;(require 'git)
+;; (require 'git) is built in VC already.
+;; C-x v v for commit info C-c C-c for commit
+;; C-x v P for push
 
 
 ;; Enable Projectile
@@ -181,7 +183,8 @@
    "e" 'find-file
    "b" 'switch-to-buffer
    "k" 'kill-buffer
-   "w" 'evil-window-map)
+   "w" 'evil-window-map
+   "o p" 'treemacs)
 
 ;; Treemacs keybindings
 
