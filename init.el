@@ -20,11 +20,6 @@
 		(unless (package-installed-p 'ivy)
 		  (package-install 'ivy))
 		
-		(unless (package-installed-p 'magit)
-		  (package-install 'magit))
-		(unless (package-installed-p 'evil-magit)
-		  (package-install 'evil-magit))
-		
 		(unless (package-installed-p 'projectile)
 		  (package-install 'projectile))
 		
@@ -117,8 +112,7 @@
 (ivy-mode 1)
 
 ;; MaGit
-(require 'magit)
-(require 'evil-magit)
+;; Too slow on Windows to use.
 
 ;; Enable Projectile
 
@@ -187,7 +181,7 @@
     ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
  '(package-selected-packages
    (quote
-    (evil-magit magit cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+    (cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
