@@ -112,7 +112,7 @@
 (require 'evil)
 (require 'evil-leader)
 (evil-leader/set-leader "<SPC>")
-(evil-leader-mode)
+(global-evil-leader-mode t)
 (evil-mode 1)
 
 ;; Enable Ivy
