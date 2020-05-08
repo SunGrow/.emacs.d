@@ -180,7 +180,8 @@
    "p" 'projectile-command-map
    "e" 'find-file
    "b" 'switch-to-buffer
-   "k" 'kill-buffer)
+   "k" 'kill-buffer
+   "w" 'evil-window-map)
 
 ;; Treemacs keybindings
 
