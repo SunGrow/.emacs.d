@@ -12,10 +12,6 @@
 	"Init config packages"
 	(interactive "r")
 	( 
-		(unless (package-installed-p 'quelpa)
-		  (package-install 'quelpa))
-		(unless (package-installed-p 'quelpa-use-package)
-		  (package-install 'quelpa-use-package))
 
 		(unless (package-installed-p 'zenburn-theme)
 		  (package-install 'zenburn-theme))
@@ -252,16 +248,22 @@
 )
 
 ;; Debug
-(require 'quelpa)
-(require 'quelpa-use-package)
 (setq gdb-show-main t)
 (setq gdb-many-windows 1)
-(use-package gdb-mi :quelpa (gdb-mi :fetcher git
-                                    :url "https://github.com/weirdNox/emacs-gdb.git"
-                                    :files ("*.el" "*.c" "*.h" "Makefile"))
-  
-  
-  )
+
+;;(require 'quelpa)
+;;(require 'quelpa-use-package)
+;;;;;;;;;;;;;;;;(unless (package-installed-p 'quelpa)
+;;;;;;;;;;;;;;;;  (package-install 'quelpa))
+;;;;;;;;;;;;;;;;(unless (package-installed-p 'quelpa-use-package)
+;;;;;;;;;;;;;;;;  (package-install 'quelpa-use-package))
+;;(use-package gdb-mi :quelpa (gdb-mi :fetcher git
+;;                                  :url "https://github.com/weirdNox/emacs-gdb.git"
+;;                                  :files ("*.el" "*.c" "*.h" "Makefile"))
+;;;;:init
+;;;;(fmakunbound 'gdb)
+;;;;(fmakunbound 'gdb-enable-debug) 
+;;)
 
 
 
@@ -281,7 +283,7 @@
     ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
  '(package-selected-packages
    (quote
-    (quelpa-use-package quelpa company-irony irony evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+    (company-irony irony evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
