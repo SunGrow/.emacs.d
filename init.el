@@ -40,6 +40,11 @@
 		
 		(unless (package-installed-p 'cmake-mode)
 		  (package-install 'cmake-mode))
+
+		(unless (package-installed-p 'irony)
+		  (package-install 'irony))
+		(unless (package-installed-p 'company-irony)
+		  (package-install 'company-irony))
 	)
 	(interactive "r")
 )
@@ -150,6 +155,29 @@
 
 (require 'cmake-mode)
 
+;; Irony
+
+(require 'irony)
+(require 'company-irony)
+
+(add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'objc-mode-hook 'irony-mode)
+
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+(eval-after-load 'company
+  '(add-to-list 'company-backends 'company-irony))
+
+;; Windows performance tweaks
+;;
+(when (boundp 'w32-pipe-read-delay)
+  (setq w32-pipe-read-delay 0))
+;; Set the buffer size to 64K on Windows (from the original 4K)
+(when (boundp 'w32-pipe-buffer-size)
+  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+
+
 ;; Keybindings
 
 (global-set-key (kbd "C-x C-b") 'buffer-menu)
@@ -187,10 +215,49 @@
    "o p" 'treemacs
    "v" 'vc-prefix-map)
 
+(define-key vc-prefix-map (kbd "p") #'vc-pull)
+
 ;; Treemacs keybindings
 
 (define-key evil-normal-state-map (kbd "C-o") nil)
 (define-key evil-normal-state-map (kbd "C-o p") #'treemacs)
+
+;; Project compile
+(defun c-project-configure (&optional ConfigMode)
+  "Configure projectile cmake c project"
+  (interactive)
+  (shell-command
+   (format "cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=%s -H%s -B%sbuild -G Ninja"
+   (if ConfigMode ConfigMode "Debug")
+   (projectile-project-root)
+   (projectile-project-root)
+  )
+  )
+  )
+(defun c-project-compile (&optional CompileMode)
+  "Configure projectile cmake c project"
+  (interactive)
+  (shell-command
+   (format "cmake --build %sbuild --config %s -- -j 10"
+   ; --target EsperEngineTest //Because it is too much of a hassle to implement a target to build menu
+   (projectile-project-root)
+   (if CompileMode CompileMode "Debug")
+  )
+  )
+)
+
+;; Debug
+
+(setq gdb-show-main t)
+(setq gdb-many-windows 1)
+
+
+
+
+
+
+
+
 
 
 (custom-set-variables
@@ -203,7 +270,7 @@
     ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
  '(package-selected-packages
    (quote
-    (evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+    (company-irony irony evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
