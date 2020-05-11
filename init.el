@@ -10,7 +10,6 @@
 
 (defun init-packages ()
 	"Init config packages"
-	(interactive "r")
 	( 
 
 		(unless (package-installed-p 'zenburn-theme)
@@ -48,6 +47,7 @@
 		(unless (package-installed-p 'company-irony)
 		  (package-install 'company-irony))
 	)
+	(interactive "r")
 )
 
 ;; Looks setup
