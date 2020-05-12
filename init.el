@@ -4,14 +4,10 @@
                          ("melpa" . "https://melpa.org/packages/")
 			 ("org" . "http://orgmode.org/elpa")))
 (package-initialize)
-;; (package-refresh-contents)
+;;(package-refresh-contents)
 
 ;; Package Download
 
-(defun init-packages ()
-	"Init config packages"
-	(interactive "r")
-	( 
 
 		(unless (package-installed-p 'zenburn-theme)
 		  (package-install 'zenburn-theme))
@@ -47,8 +43,6 @@
 		  (package-install 'irony))
 		(unless (package-installed-p 'company-irony)
 		  (package-install 'company-irony))
-	)
-)
 
 ;; Looks setup
 
