@@ -4,45 +4,38 @@
                          ("melpa" . "https://melpa.org/packages/")
 			 ("org" . "http://orgmode.org/elpa")))
 (package-initialize)
-;;(package-refresh-contents)
+(unless package-archive-contents (package-refresh-contents))
 
 ;; Package Download
+(unless (package-installed-p 'zenburn-theme)
+  (package-install 'zenburn-theme))
 
+(unless (package-installed-p 'evil)
+  (package-install 'evil))
+(unless (package-installed-p 'evil-leader)
+  (package-install 'evil-leader))
 
-		(unless (package-installed-p 'zenburn-theme)
-		  (package-install 'zenburn-theme))
-	
-		(unless (package-installed-p 'evil)
-		  (package-install 'evil))
-		(unless (package-installed-p 'evil-leader)
-		  (package-install 'evil-leader))
-		
-		(unless (package-installed-p 'ivy)
-		  (package-install 'ivy))
-		
-		(unless (package-installed-p 'git)
-		  (package-install 'git))
+(unless (package-installed-p 'ivy)
+  (package-install 'ivy))
 
-		(unless (package-installed-p 'projectile)
-		  (package-install 'projectile))
-		
-		(unless (package-installed-p 'treemacs)
-		  (package-install 'treemacs))
-		(unless (package-installed-p 'treemacs-evil)
-		  (package-install 'treemacs-evil))
-		(unless (package-installed-p 'treemacs-projectile)
-		  (package-install 'treemacs-projectile))
-		
-		(unless (package-installed-p 'company)
-		  (package-install 'company))
-		
-		(unless (package-installed-p 'cmake-mode)
-		  (package-install 'cmake-mode))
+(unless (package-installed-p 'git)
+  (package-install 'git))
 
-		(unless (package-installed-p 'irony)
-		  (package-install 'irony))
-		(unless (package-installed-p 'company-irony)
-		  (package-install 'company-irony))
+(unless (package-installed-p 'projectile)
+  (package-install 'projectile))
+
+(unless (package-installed-p 'treemacs)
+  (package-install 'treemacs))
+(unless (package-installed-p 'treemacs-evil)
+  (package-install 'treemacs-evil))
+(unless (package-installed-p 'treemacs-projectile)
+  (package-install 'treemacs-projectile))
+
+(unless (package-installed-p 'company)
+  (package-install 'company))
+
+(unless (package-installed-p 'cmake-mode)
+  (package-install 'cmake-mode))
 
 ;; Looks setup
 
@@ -277,7 +270,7 @@
     ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
  '(package-selected-packages
    (quote
-    (company-irony irony evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+    (evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
