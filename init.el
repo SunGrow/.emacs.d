@@ -1,11 +1,12 @@
+
 ;; Set up package.el to work with MELPA
 (require 'package)
 (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
                          ("melpa" . "https://melpa.org/packages/")
+			 ("melpa-stable" . "https://stable.melpa.org/packages/") 
 			 ("org" . "http://orgmode.org/elpa")))
 (package-initialize)
 (unless package-archive-contents (package-refresh-contents))
-
 ;; Package Download
 (unless (package-installed-p 'zenburn-theme)
   (package-install 'zenburn-theme))
@@ -36,6 +37,13 @@
 
 (unless (package-installed-p 'cmake-mode)
   (package-install 'cmake-mode))
+
+(unless (package-installed-p 'elpy)
+  (package-install 'elpy))
+
+(unless (package-installed-p 'flycheck)
+  (package-install 'flycheck))
+
 
 ;; Looks setup
 
@@ -125,7 +133,7 @@
 
 (require 'projectile)
 (projectile-mode +1)
-(setq projectile-project-search-path '("/Users/LazyF/Documents"))
+(setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents"))
 (setq projectile-completion-system 'ivy)
 
 ;; Enable Treemacs
@@ -145,25 +153,25 @@
 
 ;; Irony
 
-(require 'irony)
-(require 'company-irony)
-
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
-(add-hook 'objc-mode-hook 'irony-mode)
-
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-
-(eval-after-load 'company
-  '(add-to-list 'company-backends 'company-irony))
+;;(require 'irony)
+;;(require 'company-irony)
+;;
+;;(add-hook 'c++-mode-hook 'irony-mode)
+;;(add-hook 'c-mode-hook 'irony-mode)
+;;(add-hook 'objc-mode-hook 'irony-mode)
+;;
+;;(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+;;
+;;(eval-after-load 'company
+;;  '(add-to-list 'company-backends 'company-irony))
 
 ;; Windows performance tweaks
 ;;
-(when (boundp 'w32-pipe-read-delay)
-  (setq w32-pipe-read-delay 0))
-;; Set the buffer size to 64K on Windows (from the original 4K)
-(when (boundp 'w32-pipe-buffer-size)
-  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+;;(when (boundp 'w32-pipe-read-delay)
+;;  (setq w32-pipe-read-delay 0))
+;;;; Set the buffer size to 64K on Windows (from the original 4K)
+;;(when (boundp 'w32-pipe-buffer-size)
+;;  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
 
 
 ;; Keybindings
@@ -254,10 +262,23 @@
 
 
 
+;; Python
+
+(require 'elpy)
+(elpy-enable)
+
+
+(add-hook 'python-mode-hook
+      (lambda ()
+        (setq indent-tabs-mode t)
+        (setq tab-width 4)
+        (setq python-indent-offset 4)))
 
 
 
+;; FlyCheck
 
+(global-flycheck-mode)
 
 
 (custom-set-variables
@@ -268,6 +289,7 @@
  '(custom-safe-themes
    (quote
     ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
+ '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
    (quote
     (evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
@@ -277,3 +299,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(provide 'init)
+
+;;; Init ends here
