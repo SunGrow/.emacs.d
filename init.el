@@ -50,8 +50,6 @@
 (unless (package-installed-p 'lsp-mode)
   (package-install 'lsp-mode))
 
-(unless (package-installed-p 'eglot)
-  (package-install 'eglot))
 
 
 ;; Looks setup
@@ -222,8 +220,7 @@
    "o p" 'treemacs
    "v" 'vc-prefix-map
    "l l" 'lsp
-   "l r" 'lsp-rename
-   "c l" 'eglot)
+   "l r" 'lsp-rename)
 
 (define-key vc-prefix-map (kbd "p") #'vc-pull)
 
@@ -302,14 +299,45 @@
 
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 
+
 (require 'lsp-mode)
+
+(defvar lsp-language-id-congiguration
+  '(
+	(python-mode . "python")
+  	(c-mode . "c")
+  	(c++-mode . "c++")
+	))
+  
+
+(lsp-register-client
+ (make-lsp-client
+	:new-connection (lsp-stdio-connection "pyls")
+	:major-modes '(python-mode)
+	:server-id 'pyls))
+
+(lsp-register-client
+ (make-lsp-client
+	:new-connection (lsp-stdio-connection "clangd")
+	:major-modes '(c-mode)
+	:server-id 'clangd))
+
+(lsp-register-client
+ (make-lsp-client
+	:new-connection (lsp-stdio-connection "clangd")
+	:major-modes '(c++-mode)
+	:server-id 'clangd))
+
+(add-hook 'python-mode-hook 'lsp)
+(add-hook 'c-mode-hook 'lsp)
+(add-hook 'c++-mode-hook 'lsp)
 
 ;; LSP eglot
 
-(require 'eglot)
-(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
-(add-hook 'c-mode-hook 'eglot-ensure)
-(add-hook 'c++-mode-hook 'eglot-ensure)
+;;(require 'eglot)
+;;(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+;;(add-hook 'c-mode-hook 'eglot-ensure)
+;;(add-hook 'c++-mode-hook 'eglot-ensure)
 
 
 (custom-set-variables
@@ -323,7 +351,7 @@
  '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
    (quote
-	(eglot markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+	(markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
