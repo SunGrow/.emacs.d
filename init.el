@@ -44,15 +44,24 @@
 (unless (package-installed-p 'flycheck)
   (package-install 'flycheck))
 
+(unless (package-installed-p 'markdown-mode)
+  (package-install 'markdown-mode))
+
+(unless (package-installed-p 'lsp-mode)
+  (package-install 'lsp-mode))
+
+(unless (package-installed-p 'eglot)
+  (package-install 'eglot))
+
 
 ;; Looks setup
 
 (set-frame-font "JetBrains Mono 10" nil t)
 
 ;; Set tabs
-(setq indent-tabs-mode t)
-(setq tab-width 2)
-(defvaralias 'c-basic-offset 'tab-width)
+(setq-default indent-tabs-mode t
+	      tab-width 4
+	      c-basic-offset 4)
 (setq-default tab-always-indent 'complete)
 (defun my-insert-tab-char ()
   "Insert a tab char. (ASCII 9, \t)"
@@ -146,6 +155,8 @@
 
 (add-hook 'after-init-hook 'global-company-mode)
 (require 'company)
+(setq company-minimum-prefix-length 1
+      company-idle-delay 0.0) ;; default is 0.2
 
 ;; CMake
 
@@ -209,7 +220,10 @@
    "k" 'kill-buffer
    "w" 'evil-window-map
    "o p" 'treemacs
-   "v" 'vc-prefix-map)
+   "v" 'vc-prefix-map
+   "l l" 'lsp
+   "l r" 'lsp-rename
+   "c l" 'eglot)
 
 (define-key vc-prefix-map (kbd "p") #'vc-pull)
 
@@ -281,6 +295,23 @@
 (global-flycheck-mode)
 
 
+
+;; LSP mode
+
+(setq gc-cons-threshold 100000000)
+
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+
+(require 'lsp-mode)
+
+;; LSP eglot
+
+(require 'eglot)
+(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+(add-hook 'c-mode-hook 'eglot-ensure)
+(add-hook 'c++-mode-hook 'eglot-ensure)
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -288,11 +319,11 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    (quote
-    ("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
+	("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
  '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
    (quote
-    (evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+	(eglot markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
