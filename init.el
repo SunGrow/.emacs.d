@@ -50,6 +50,8 @@
 (unless (package-installed-p 'lsp-mode)
   (package-install 'lsp-mode))
 
+(unless (package-installed-p 'glsl-mode)
+  (package-install 'glsl-mode))
 
 
 ;; Looks setup
@@ -211,6 +213,7 @@
 (define-key evil-normal-state-map (kbd "C-p") nil)
 (define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
 
+
 (evil-leader/set-key
    "p" 'projectile-command-map
    "e" 'find-file
@@ -221,6 +224,16 @@
    "v" 'vc-prefix-map
    "l l" 'lsp
    "l r" 'lsp-rename)
+
+;;;(defvar evil-window-r-resize-map
+;;;  (let ((map (make-sparse-keymap)))
+;;;    (define-key map (kbd "h") (lambda () '()))
+;;;    (define-key map (kbd "j") #evil-window-r-increase-height')
+;;;    (define-key map (kbd "k") #evil-window-r-decrease-height')
+;;;    (define-key map (kbd "l") #evil-window-r-increase-width')
+;;;	)
+;;;"Keymap for evil window recursive resize commands.")
+;;;(fset 'evil-window-r-resize-map evil-window-r-resize-map)
 
 (define-key vc-prefix-map (kbd "p") #'vc-pull)
 
@@ -332,6 +345,12 @@
 (add-hook 'c-mode-hook 'lsp)
 (add-hook 'c++-mode-hook 'lsp)
 
+;; GLSL
+
+(require 'glsl-mode)
+(add-to-list 'auto-mode-alist '("\\.vert\\'" . glsl-mode))
+(add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
+
 ;; LSP eglot
 
 ;;(require 'eglot)
@@ -351,7 +370,7 @@
  '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
    (quote
-	(markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+	(glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
