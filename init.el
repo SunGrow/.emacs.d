@@ -1,9 +1,10 @@
 
 ;; Set up package.el to work with MELPA
+;;; Code:
 (require 'package)
 (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
                          ("melpa" . "https://melpa.org/packages/")
-			 ("melpa-stable" . "https://stable.melpa.org/packages/") 
+			 ("melpa-stable" . "https://stable.melpa.org/packages/")
 			 ("org" . "http://orgmode.org/elpa")))
 (package-initialize)
 (unless package-archive-contents (package-refresh-contents))
@@ -64,17 +65,17 @@
 	      c-basic-offset 4)
 (setq-default tab-always-indent 'complete)
 (defun my-insert-tab-char ()
-  "Insert a tab char. (ASCII 9, \t)"
+  "Insert a tab char. (ASCII 9, \t)."
   (interactive)
   (insert "\t"))
 
 (global-set-key (kbd "TAB") 'my-insert-tab-char)
 
 ;; Disabling the menu bar
-(menu-bar-mode -1) 
+(menu-bar-mode -1)
 
 ;; Disabling the toolbar
-(tool-bar-mode -1) 
+(tool-bar-mode -1)
 
 ;; Disabling the scrollbar
 (toggle-scroll-bar -1)
@@ -213,6 +214,16 @@
 (define-key evil-normal-state-map (kbd "C-p") nil)
 (define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
 
+;; Recursive resize map
+;;(defun evil-window-r-decrease-width ()
+;;  "Decrease width of a window and return to a resize window map."
+;;	(interactive)
+;;  '(progn #'evil-window-decrease-width 'evil-window-r-resize-map))
+;;
+;;(defvar evil-window-resize-r-map (make-sparse-keymap)
+;;  "Keymap for resize related commands.")
+;;(fset 'evil-window-resize-r-map evil-window-resize-r-map)
+;;(define-key evil-window-resize-r-map (kbd "h") #'evil-window-r-decrease-width)
 
 (evil-leader/set-key
    "p" 'projectile-command-map
@@ -223,17 +234,11 @@
    "o p" 'treemacs
    "v" 'vc-prefix-map
    "l l" 'lsp
-   "l r" 'lsp-rename)
+   "l r" 'lsp-rename
+   "R" 'evil-window-r-resize-map
+   "g d" 'lsp-find-definition
+   "h" 'helm-swoop)
 
-;;;(defvar evil-window-r-resize-map
-;;;  (let ((map (make-sparse-keymap)))
-;;;    (define-key map (kbd "h") (lambda () '()))
-;;;    (define-key map (kbd "j") #evil-window-r-increase-height')
-;;;    (define-key map (kbd "k") #evil-window-r-decrease-height')
-;;;    (define-key map (kbd "l") #evil-window-r-increase-width')
-;;;	)
-;;;"Keymap for evil window recursive resize commands.")
-;;;(fset 'evil-window-r-resize-map evil-window-r-resize-map)
 
 (define-key vc-prefix-map (kbd "p") #'vc-pull)
 
@@ -244,7 +249,7 @@
 
 ;; Project compile
 (defun c-project-configure (&optional ConfigMode)
-  "Configure projectile cmake c project"
+  "Configure projectile cmake c project."
   (interactive)
   (shell-command
    (format "cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=%s -H%s -B%sbuild -G Ninja"
@@ -255,7 +260,7 @@
   )
   )
 (defun c-project-compile (&optional CompileMode)
-  "Configure projectile cmake c project"
+  "Configure projectile cmake c project."
   (interactive)
   (shell-command
    (format "cmake --build %sbuild --config %s -- -j 10"
@@ -351,13 +356,11 @@
 (add-to-list 'auto-mode-alist '("\\.vert\\'" . glsl-mode))
 (add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
 
-;; LSP eglot
+(setq backup-directory-alist `(("." . "~/.saves")))
 
-;;(require 'eglot)
-;;(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
-;;(add-hook 'c-mode-hook 'eglot-ensure)
-;;(add-hook 'c++-mode-hook 'eglot-ensure)
+(setq backup-by-copying t)
 
+(global-auto-revert-mode t)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
