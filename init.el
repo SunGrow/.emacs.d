@@ -1,6 +1,16 @@
+;;; Package --- Summary:
+;;; GNU Emacs init config
+
+;;; Commentary:
+;;; It sure is messy
+
+;;; Code:
+
+;; Personal Info
+(setq user-full-name "Lev Polyakov"
+      user-mail-address "SunGrow@tuta.io")
 
 ;; Set up package.el to work with MELPA
-;;; Code:
 (require 'package)
 (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
                          ("melpa" . "https://melpa.org/packages/")
@@ -8,23 +18,113 @@
 			 ("org" . "http://orgmode.org/elpa")))
 (package-initialize)
 (unless package-archive-contents (package-refresh-contents))
-;; Package Download
+
+;;; Look and Feel
+
+;; Font
+(set-frame-font "JetBrains Mono 10" nil t) ; Font
+
+;; Set tabs
+(setq-default indent-tabs-mode t
+	      tab-width 4
+	      c-basic-offset 4)
+(setq-default tab-always-indent 'complete)
+(defun my-insert-tab-char ()
+  "Insert a tab char. (ASCII 9, \t)."
+  (interactive)
+  (insert "\t"))
+
+(global-set-key (kbd "TAB") 'my-insert-tab-char)
+
+;; Disabling the menu bar
+(menu-bar-mode -1)
+
+;; Disabling the toolbar
+(tool-bar-mode -1)
+
+;; Disabling the scrollbar
+(toggle-scroll-bar -1)
+
+;; Turn off the beep
+(setq visible-bell 1)
+
+;; Startup Buffer to blanc buffer screen
+(setq inhibit-startup-screen t)
+
+;; Theme init
 (unless (package-installed-p 'zenburn-theme)
   (package-install 'zenburn-theme))
+(require 'zenburn-theme)
 
+;; use variable-pitch fonts for some headings and titles
+(setq zenburn-use-variable-pitch t)
+
+;; scale headings in org-mode
+(setq zenburn-scale-org-headlines t)
+
+;; scale headings in outline-mode
+(setq zenburn-scale-outline-headlines t)
+
+(setq zenburn-override-colors-alist
+      '(
+    	("zenburn-fg"       . "#DCDCCC") ; Menu text
+      	("zenburn-fg+1"     . "#FFFFCF") ; Cursor
+
+      	("zenburn-bg-1"     . "#7F7460") ; Status line + Selection
+      	("zenburn-bg"       . "#31312D") ; Main BG
+      	("zenburn-bg+1"     . "#3D3D3A") ; Left and Right borders
+    	("zenburn-yellow"   . "#F1E0AF") ; Status line curr file name and Menu Highlight
+    	("zenburn-green-2"  . "#8F7B3F") ; Comment semicolumn
+    	("zenburn-green"    . "#8F8B3B") ; Comment text
+    	("zenburn-green+1"  . "#0F0F0F") ; Status line Side text
+       	))
+;; Set Theme
+(load-theme 'zenburn t)
+
+;; General Keybindings
+(global-set-key (kbd "C-x C-b") 'buffer-menu)
+
+;; Evil
+
+;; Enable Evil
 (unless (package-installed-p 'evil)
   (package-install 'evil))
 (unless (package-installed-p 'evil-leader)
   (package-install 'evil-leader))
 
+(require 'evil)
+(require 'evil-leader)
+
+(evil-leader/set-leader "<SPC>")
+(global-evil-leader-mode t)
+(evil-mode 1)
+
+;; Enable Ivy
 (unless (package-installed-p 'ivy)
   (package-install 'ivy))
+(require 'ivy)
+(ivy-mode 1) ; Because I don't like helm
 
-(unless (package-installed-p 'git)
-  (package-install 'git))
+;; Ivy keybindings
+(define-key ivy-minibuffer-map (kbd "C-k") #'ivy-previous-line)
+(define-key ivy-minibuffer-map (kbd "C-j") #'ivy-next-line)
+(define-key ivy-minibuffer-map (kbd "C-l") #'ivy-alt-done)
 
+(define-key ivy-minibuffer-map (kbd "C-h") #'ivy-kill-line)
+(define-key ivy-switch-buffer-map (kbd "C-h") #'ivy-switch-buffer-kill)
+(define-key ivy-switch-buffer-map (kbd "C-k") #'ivy-previous-line)
+
+;;; General Project Development
+
+;; Enable Projectile
 (unless (package-installed-p 'projectile)
   (package-install 'projectile))
+(require 'projectile)
+(projectile-mode +1)
+
+(setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents"))
+(setq projectile-completion-system 'ivy)
+
 
 (unless (package-installed-p 'treemacs)
   (package-install 'treemacs))
@@ -55,96 +155,9 @@
   (package-install 'glsl-mode))
 
 
-;; Looks setup
-
-(set-frame-font "JetBrains Mono 10" nil t)
-
-;; Set tabs
-(setq-default indent-tabs-mode t
-	      tab-width 4
-	      c-basic-offset 4)
-(setq-default tab-always-indent 'complete)
-(defun my-insert-tab-char ()
-  "Insert a tab char. (ASCII 9, \t)."
-  (interactive)
-  (insert "\t"))
-
-(global-set-key (kbd "TAB") 'my-insert-tab-char)
-
-;; Disabling the menu bar
-(menu-bar-mode -1)
-
-;; Disabling the toolbar
-(tool-bar-mode -1)
-
-;; Disabling the scrollbar
-(toggle-scroll-bar -1)
-
-;; Turn off the beep
-(setq visible-bell 1)
-
-;; Startup Buffer Sivyetup
-
-(setq inhibit-startup-screen t)
-
-;; Theme init
-
-(require 'zenburn-theme)
-
-;; use variable-pitch fonts for some headings and titles
-(setq zenburn-use-variable-pitch t)
-
-;; scale headings in org-mode
-(setq zenburn-scale-org-headlines t)
-
-;; scale headings in outline-mode
-(setq zenburn-scale-outline-headlines t)
-
-(setq zenburn-override-colors-alist
-      '(
-    	("zenburn-fg"       . "#DCDCCC") ;; Menu text
-      	("zenburn-fg+1"     . "#FFFFCF") ;; Cursor
-
-      	("zenburn-bg-1"     . "#7F7460") ;; Status line + Selection
-      	("zenburn-bg"       . "#31312D") ;; Main BG
-      	("zenburn-bg+1"     . "#3D3D3A") ;; Left and Right borders
-    	("zenburn-yellow"   . "#F1E0AF") ;; Status line curr file name and Menu Highlight
-    	("zenburn-green-2"  . "#8F7B3F") ;; Comment semicolumn
-    	("zenburn-green"    . "#8F8B3B") ;; Comment text
-    	("zenburn-green+1"  . "#0F0F0F") ;; Status line Side text
-       	))
-;; Set Theme
-(load-theme 'zenburn t)
-
-
-;; Evil
-
-;; Enable Evil
-(require 'evil)
-(require 'evil-leader)
-(evil-leader/set-leader "<SPC>")
-(global-evil-leader-mode t)
-(evil-mode 1)
-
-;; Enable Ivy
-(require 'ivy)
-(ivy-mode 1)
-
 ;; MaGit
 ;; Too slow on Windows to use.
 
-;; Git
-;; (require 'git) is built in VC already.
-;; C-x v v for commit info C-c C-c for commit
-;; C-x v P for push
-
-
-;; Enable Projectile
-
-(require 'projectile)
-(projectile-mode +1)
-(setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents"))
-(setq projectile-completion-system 'ivy)
 
 ;; Enable Treemacs
 
@@ -186,27 +199,13 @@
 ;;  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
 
 
-;; Keybindings
 
-(global-set-key (kbd "C-x C-b") 'buffer-menu)
  
 ;; Company keybindings
 
 (define-key company-active-map (kbd "C-j") #'company-select-next)
 (define-key company-active-map (kbd "C-k") #'company-select-previous)
 
-;; Ivy keybindings
-
-(define-key ivy-minibuffer-map (kbd "C-k") #'ivy-previous-line)
-
-(define-key ivy-minibuffer-map (kbd "C-j") #'ivy-next-line)
-
-(define-key ivy-minibuffer-map (kbd "C-l") #'ivy-alt-done)
-
-;; C-h -> (kbd "DEL")
-(define-key ivy-minibuffer-map (kbd "C-h") #'ivy-kill-line)
-(define-key ivy-switch-buffer-map (kbd "C-h") #'ivy-switch-buffer-kill)
-(define-key ivy-switch-buffer-map (kbd "C-k") #'ivy-previous-line)
 
 ;; Projectile keybindings
 
@@ -236,8 +235,7 @@
    "l l" 'lsp
    "l r" 'lsp-rename
    "R" 'evil-window-r-resize-map
-   "g d" 'lsp-find-definition
-   "h" 'helm-swoop)
+   "g d" 'lsp-find-definition)
 
 
 (define-key vc-prefix-map (kbd "p") #'vc-pull)
@@ -256,9 +254,10 @@
    (if ConfigMode ConfigMode "Debug")
    (projectile-project-root)
    (projectile-project-root)
+   )
   )
-  )
-  )
+)
+
 (defun c-project-compile (&optional CompileMode)
   "Configure projectile cmake c project."
   (interactive)
@@ -315,7 +314,7 @@
 
 (setq gc-cons-threshold 100000000)
 
-(setq read-process-output-max (* 1024 1024)) ;; 1mb
+(setq read-process-output-max (* 1024 1024)) ; 1mb
 
 
 (require 'lsp-mode)
