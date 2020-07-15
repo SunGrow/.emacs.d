@@ -22,7 +22,7 @@
 ;;; Look and Feel
 
 ;; Font
-(set-frame-font "JetBrains Mono 10" nil t) ; Font
+(set-frame-font "JetBrains Mono 11" nil t) ; Font
 
 ;; Set tabs
 (setq-default indent-tabs-mode t
@@ -122,7 +122,7 @@
 (require 'projectile)
 (projectile-mode +1)
 
-(setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents"))
+(setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents" "~/Projects/"))
 (setq projectile-completion-system 'ivy)
 
 
@@ -154,6 +154,8 @@
 (unless (package-installed-p 'glsl-mode)
   (package-install 'glsl-mode))
 
+(unless (package-installed-p 'auto-complete-clang)
+  (package-install 'auto-complete-clang))
 
 ;; MaGit
 ;; Too slow on Windows to use.
@@ -165,12 +167,6 @@
 (require 'treemacs-evil)
 (require 'treemacs-projectile)
 
-;; Company mode
-
-(add-hook 'after-init-hook 'global-company-mode)
-(require 'company)
-(setq company-minimum-prefix-length 1
-      company-idle-delay 0.0) ;; default is 0.2
 
 ;; CMake
 
@@ -178,29 +174,87 @@
 
 ;; Irony
 
-;;(require 'irony)
-;;(require 'company-irony)
-;;
-;;(add-hook 'c++-mode-hook 'irony-mode)
-;;(add-hook 'c-mode-hook 'irony-mode)
-;;(add-hook 'objc-mode-hook 'irony-mode)
-;;
-;;(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-;;
-;;(eval-after-load 'company
-;;  '(add-to-list 'company-backends 'company-irony))
+(unless (package-installed-p 'irony)
+  (package-install 'irony))
+(unless (package-installed-p 'company-irony)
+  (package-install 'company-irony))
+(unless (package-installed-p 'company-irony-c-headers)
+  (package-install 'company-irony-c-headers))
+(unless (package-installed-p 'flycheck-irony)
+  (package-install 'flycheck-irony))
+(require 'irony)
+(require 'company-irony)
+(require 'company-irony-c-headers)
+(require 'flycheck-irony)
+
+(add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'objc-mode-hook 'irony-mode)
+
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+(eval-after-load 'flycheck
+  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+
+(eval-after-load 'company
+  '(add-to-list 'company-backends 'company-irony))
 
 ;; Windows performance tweaks
-;;
-;;(when (boundp 'w32-pipe-read-delay)
-;;  (setq w32-pipe-read-delay 0))
-;;;; Set the buffer size to 64K on Windows (from the original 4K)
-;;(when (boundp 'w32-pipe-buffer-size)
-;;  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+
+(when (boundp 'w32-pipe-read-delay)
+  (setq w32-pipe-read-delay 0))
+
+;; Set the buffer size to 64K on Windows (from the original 4K)
+(when (boundp 'w32-pipe-buffer-size)
+  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
 
 
+;; Company mode
 
- 
+(add-hook 'after-init-hook 'global-company-mode)
+(require 'company)
+(setq company-minimum-prefix-length 1
+      company-idle-delay 0.0) ;; default is 0.2
+
+(eval-after-load 'company
+  '(add-to-list 'company-backends 'company-irony-c-headers))
+
+;; RTags
+
+(unless (package-installed-p 'rtags)
+  (package-install 'rtags))
+(unless (package-installed-p 'ivy-rtags)
+  (package-install 'ivy-rtags))
+(unless (package-installed-p 'flycheck-rtags)
+  (package-install 'flycheck-rtags))
+(unless (package-installed-p 'company-rtags)
+  (package-install 'company-rtags))
+
+(require 'rtags)
+(require 'ivy-rtags)
+(require 'flycheck-rtags)
+(require 'company-rtags)
+
+(add-hook 'c-mode-hook 'rtags-start-process-unless-running)
+(add-hook 'c++-mode-hook 'rtags-start-process-unless-running)
+(add-hook 'objc-mode-hook 'rtags-start-process-unless-running)
+
+(setq rtags-display-result-backend 'ivy)
+(push 'company-rtags company-backends)
+
+;; CMake-IDE
+
+(unless (package-installed-p 'cmake-ide)
+  (package-install 'cmake-ide))
+(require 'cmake-ide)
+(cmake-ide-setup)
+
+;; Disassemble
+
+(unless (package-installed-p 'disaster)
+  (package-install 'disaster))
+(require 'disaster)
+
 ;; Company keybindings
 
 (define-key company-active-map (kbd "C-j") #'company-select-next)
@@ -232,10 +286,31 @@
    "w" 'evil-window-map
    "o p" 'treemacs
    "v" 'vc-prefix-map
+   ;; lsp keybindings
    "l l" 'lsp
    "l r" 'lsp-rename
-   "R" 'evil-window-r-resize-map
-   "g d" 'lsp-find-definition)
+   "g d" 'lsp-find-definition
+   ;; rtags keybindings
+   "r h" 'rtags-location-stack-back
+   "r l" 'rtags-location-stack-forward
+   "r p" 'rtags-previous-match
+   "r n" 'rtags-next-match
+   "r r" 'rtags-rename-symbol
+   "r ." 'rtags-find-symbol-at-point
+   "r ," 'rtags-find-references-at-point
+   "r /" 'rtags-find-all-references-at-point
+   "r >" 'rtags-find-symbol
+   "r <" 'rtags-find-references
+   ;; cmake-ide keybindings
+   "i i" 'cmake-ide-maybe-start-rdm
+   "i r" 'cmake-ide-maybe-run-cmake
+   "i c" 'cmake-ide-compile
+   ;; flycheck keybindings
+   "f h" 'flycheck-previous-error
+   "f l" 'flycheck-next-error
+   ;; disassemble keybindings
+   "d d" 'disaster
+   )
 
 
 (define-key vc-prefix-map (kbd "p") #'vc-pull)
@@ -245,30 +320,30 @@
 (define-key evil-normal-state-map (kbd "C-o") nil)
 (define-key evil-normal-state-map (kbd "C-o p") #'treemacs)
 
-;; Project compile
-(defun c-project-configure (&optional ConfigMode)
-  "Configure projectile cmake c project."
-  (interactive)
-  (shell-command
-   (format "cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=%s -H%s -B%sbuild -G Ninja"
-   (if ConfigMode ConfigMode "Debug")
-   (projectile-project-root)
-   (projectile-project-root)
-   )
-  )
-)
-
-(defun c-project-compile (&optional CompileMode)
-  "Configure projectile cmake c project."
-  (interactive)
-  (shell-command
-   (format "cmake --build %sbuild --config %s -- -j 10"
-   ; --target EsperEngineTest //Because it is too much of a hassle to implement a target to build menu
-   (projectile-project-root)
-   (if CompileMode CompileMode "Debug")
-  )
-  )
-)
+;;;; Project compile
+;;(defun c-project-configure (&optional ConfigMode)
+;;  "Configure projectile cmake c project."
+;;  (interactive)
+;;  (shell-command
+;;   (format "cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=%s -H%s -B%sbuild -G Ninja"
+;;   (if ConfigMode ConfigMode "Debug")
+;;   (projectile-project-root)
+;;   (projectile-project-root)
+;;   )
+;;  )
+;;)
+;;
+;;(defun c-project-compile (&optional CompileMode)
+;;  "Configure projectile cmake c project."
+;;  (interactive)
+;;  (shell-command
+;;   (format "cmake --build %sbuild --config %s -- -j 10"
+;;   ; --target EsperEngineTest //Because it is too much of a hassle to implement a target to build menu
+;;   (projectile-project-root)
+;;   (if CompileMode CompileMode "Debug")
+;;  )
+;;  )
+;;)
 
 ;; Debug
 (setq gdb-show-main t)
@@ -306,6 +381,7 @@
 
 ;; FlyCheck
 
+(require 'flycheck)
 (global-flycheck-mode)
 
 
@@ -346,8 +422,6 @@
 	:server-id 'clangd))
 
 (add-hook 'python-mode-hook 'lsp)
-(add-hook 'c-mode-hook 'lsp)
-(add-hook 'c++-mode-hook 'lsp)
 
 ;; GLSL
 
