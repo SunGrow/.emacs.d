@@ -125,14 +125,6 @@
 (setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents" "~/Projects/"))
 (setq projectile-completion-system 'ivy)
 
-
-(unless (package-installed-p 'treemacs)
-  (package-install 'treemacs))
-(unless (package-installed-p 'treemacs-evil)
-  (package-install 'treemacs-evil))
-(unless (package-installed-p 'treemacs-projectile)
-  (package-install 'treemacs-projectile))
-
 (unless (package-installed-p 'company)
   (package-install 'company))
 
@@ -159,13 +151,6 @@
 
 ;; MaGit
 ;; Too slow on Windows to use.
-
-
-;; Enable Treemacs
-
-(require 'treemacs)
-(require 'treemacs-evil)
-(require 'treemacs-projectile)
 
 
 ;; CMake
@@ -284,7 +269,6 @@
    "b" 'switch-to-buffer
    "k" 'kill-buffer
    "w" 'evil-window-map
-   "o p" 'treemacs
    "v" 'vc-prefix-map
    ;; lsp keybindings
    "l l" 'lsp
@@ -314,36 +298,6 @@
 
 
 (define-key vc-prefix-map (kbd "p") #'vc-pull)
-
-;; Treemacs keybindings
-
-(define-key evil-normal-state-map (kbd "C-o") nil)
-(define-key evil-normal-state-map (kbd "C-o p") #'treemacs)
-
-;;;; Project compile
-;;(defun c-project-configure (&optional ConfigMode)
-;;  "Configure projectile cmake c project."
-;;  (interactive)
-;;  (shell-command
-;;   (format "cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=%s -H%s -B%sbuild -G Ninja"
-;;   (if ConfigMode ConfigMode "Debug")
-;;   (projectile-project-root)
-;;   (projectile-project-root)
-;;   )
-;;  )
-;;)
-;;
-;;(defun c-project-compile (&optional CompileMode)
-;;  "Configure projectile cmake c project."
-;;  (interactive)
-;;  (shell-command
-;;   (format "cmake --build %sbuild --config %s -- -j 10"
-;;   ; --target EsperEngineTest //Because it is too much of a hassle to implement a target to build menu
-;;   (projectile-project-root)
-;;   (if CompileMode CompileMode "Debug")
-;;  )
-;;  )
-;;)
 
 ;; Debug
 (setq gdb-show-main t)
@@ -384,7 +338,23 @@
 (require 'flycheck)
 (global-flycheck-mode)
 
+;; CMake-utils
+(unless (package-installed-p 'cpputils-cmake)
+  (package-install 'cpputils-cmake))
+(require 'cpputils-cmake)
 
+(add-hook 'c-mode-common-hook
+		  (lambda ()
+			(if (derived-mode-p 'c-mode 'c++-mode)
+				(cppcm-reload-all)
+			  )))
+;; OPTIONAL, avoid typing full path when starting gdb
+(global-set-key (kbd "C-c C-g")
+				'(lambda ()(interactive) (gud-gdb (concat "gdb --fullname " (cppcm-get-exe-path-current-buffer)))))
+(evil-leader/set-key(kbd "g g")
+				'(lambda ()(interactive) (gud-gdb (concat "gud-gdb --fullname " (cppcm-get-exe-path-current-buffer)))))
+  ;; OPTIONAL, some users need specify extra flags forwarded to compiler
+(setq cppcm-extra-preprocss-flags-from-user '("-I/usr/src/linux/include" "-DNDEBUG"))
 
 ;; LSP mode
 
@@ -446,7 +416,7 @@
  '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
    (quote
-	(glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+	(cpputils-cmake glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
