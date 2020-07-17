@@ -235,6 +235,7 @@
 (cmake-ide-setup)
 
 (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build"))
+
 ;; Disassemble
 
 (unless (package-installed-p 'disaster)
@@ -286,17 +287,19 @@
    "r /" 'rtags-find-all-references-at-point
    "r >" 'rtags-find-symbol
    "r <" 'rtags-find-references
-   "r c" 'rtags-compile-file
    "r i" 'rtags-symbol-info
    ;; cmake-ide keybindings
    "i i" 'cmake-ide-maybe-start-rdm
    "i r" 'cmake-ide-maybe-run-cmake
    "i c" 'cmake-ide-compile
+   "i m d" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Debug") (message "CMake build mode set to: Debug"))
+   "i m r" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Release") (message "CMake build mode set to: Release"))
+   "i m i" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=RelWithDebInfo") (message "CMake build mode set to: RelWithDebInfo"))
    ;; flycheck keybindings
    "f h" 'flycheck-previous-error
    "f l" 'flycheck-next-error
    ;; disassemble keybindings
-   "d d" 'disaster
+   "d e" 'disaster
    )
 
 
@@ -340,8 +343,9 @@
 ;; OPTIONAL, avoid typing full path when starting gdb
 (global-set-key (kbd "C-c C-g")
 				'(lambda ()(interactive) (gud-gdb (concat "gdb -i=mi --fullname " (cppcm-get-exe-path-current-buffer)))))
-(evil-leader/set-key(kbd "g g")
+(evil-leader/set-key(kbd "d d")
 				'(lambda ()(interactive) (gdb (concat "gdb -i=mi " (cppcm-get-exe-path-current-buffer) ))))
+(evil-leader/set-key(kbd "d b") 'gdb-toggle-breakpoint)
 ;; OPTIONAL, some users need specify extra flags forwarded to compiler
 (setq cppcm-extra-preprocss-flags-from-user '("-I/usr/src/linux/include" "-DNDEBUG"))
 ;; Avoid system files scan
