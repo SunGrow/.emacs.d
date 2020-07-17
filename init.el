@@ -234,6 +234,7 @@
 (require 'cmake-ide)
 (cmake-ide-setup)
 
+(setq cmake-ide-build-dir (concat cmake-ide-project-dir "build"))
 ;; Disassemble
 
 (unless (package-installed-p 'disaster)
@@ -285,6 +286,8 @@
    "r /" 'rtags-find-all-references-at-point
    "r >" 'rtags-find-symbol
    "r <" 'rtags-find-references
+   "r c" 'rtags-compile-file
+   "r i" 'rtags-symbol-info
    ;; cmake-ide keybindings
    "i i" 'cmake-ide-maybe-start-rdm
    "i r" 'cmake-ide-maybe-run-cmake
@@ -302,20 +305,6 @@
 ;; Debug
 (setq gdb-show-main t)
 (setq gdb-many-windows 1)
-
-;;(require 'quelpa)
-;;(require 'quelpa-use-package)
-;;;;;;;;;;;;;;;;(unless (package-installed-p 'quelpa)
-;;;;;;;;;;;;;;;;  (package-install 'quelpa))
-;;;;;;;;;;;;;;;;(unless (package-installed-p 'quelpa-use-package)
-;;;;;;;;;;;;;;;;  (package-install 'quelpa-use-package))
-;;(use-package gdb-mi :quelpa (gdb-mi :fetcher git
-;;                                  :url "https://github.com/weirdNox/emacs-gdb.git"
-;;                                  :files ("*.el" "*.c" "*.h" "Makefile"))
-;;;;:init
-;;;;(fmakunbound 'gdb)
-;;;;(fmakunbound 'gdb-enable-debug) 
-;;)
 
 
 
@@ -350,11 +339,19 @@
 			  )))
 ;; OPTIONAL, avoid typing full path when starting gdb
 (global-set-key (kbd "C-c C-g")
-				'(lambda ()(interactive) (gud-gdb (concat "gdb --fullname " (cppcm-get-exe-path-current-buffer)))))
+				'(lambda ()(interactive) (gud-gdb (concat "gdb -i=mi --fullname " (cppcm-get-exe-path-current-buffer)))))
 (evil-leader/set-key(kbd "g g")
-				'(lambda ()(interactive) (gud-gdb (concat "gdb --fullname " (cppcm-get-exe-path-current-buffer)))))
-  ;; OPTIONAL, some users need specify extra flags forwarded to compiler
+				'(lambda ()(interactive) (gdb (concat "gdb -i=mi " (cppcm-get-exe-path-current-buffer) ))))
+;; OPTIONAL, some users need specify extra flags forwarded to compiler
 (setq cppcm-extra-preprocss-flags-from-user '("-I/usr/src/linux/include" "-DNDEBUG"))
+;; Avoid system files scan
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (if (derived-mode-p 'c-mode 'c++-mode)
+                (if  (not (or (string-match "^/usr/local/include/.*" buffer-file-name)
+                              (string-match "^/usr/src/linux/include/.*" buffer-file-name)))
+                    (cppcm-reload-all))
+              )))
 
 ;; LSP mode
 
