@@ -84,7 +84,7 @@
 ;; General Keybindings
 (global-set-key (kbd "C-x C-b") 'buffer-menu)
 
-;; Evil
+;; Feel
 
 ;; Enable Evil
 (unless (package-installed-p 'evil)
@@ -99,6 +99,14 @@
 (global-evil-leader-mode t)
 (evil-mode 1)
 
+;; Enable which key
+(unless (package-installed-p 'which-key)
+  (package-install 'which-key))
+(setq which-key-popup-type 'minibuffer)
+
+(setq which-key-idle-delay 2)
+(setq which-key-idle-secondary-delay 0.05)
+(which-key-mode)
 ;; Enable Ivy
 (unless (package-installed-p 'ivy)
   (package-install 'ivy))
@@ -220,10 +228,6 @@
 (require 'flycheck-rtags)
 (require 'company-rtags)
 
-(add-hook 'c-mode-hook 'rtags-start-process-unless-running)
-(add-hook 'c++-mode-hook 'rtags-start-process-unless-running)
-(add-hook 'objc-mode-hook 'rtags-start-process-unless-running)
-
 (setq rtags-display-result-backend 'ivy)
 (push 'company-rtags company-backends)
 
@@ -236,11 +240,9 @@
 
 (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build"))
 
-;; Disassemble
-
-(unless (package-installed-p 'disaster)
-  (package-install 'disaster))
-(require 'disaster)
+(add-hook 'c-mode-hook    'cmake-ide-maybe-start-rdm)
+(add-hook 'c++-mode-hook  'cmake-ide-maybe-start-rdm)
+(add-hook 'objc-mode-hook 'cmake-ide-maybe-start-rdm)
 
 ;; Company keybindings
 
@@ -254,19 +256,15 @@
 (define-key evil-normal-state-map (kbd "C-p") nil)
 (define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
 
-;; Recursive resize map
-;;(defun evil-window-r-decrease-width ()
-;;  "Decrease width of a window and return to a resize window map."
-;;	(interactive)
-;;  '(progn #'evil-window-decrease-width 'evil-window-r-resize-map))
-;;
-;;(defvar evil-window-resize-r-map (make-sparse-keymap)
-;;  "Keymap for resize related commands.")
-;;(fset 'evil-window-resize-r-map evil-window-resize-r-map)
-;;(define-key evil-window-resize-r-map (kbd "h") #'evil-window-r-decrease-width)
-
 (evil-leader/set-key
    "p" 'projectile-command-map
+   "d d" 'projectile-run-gdb
+   "d b" 'gdb-toggle-breakpoint
+   "d a" 'gdb-display-disassembly-buffer
+   "d s" 'gud-step
+   "d S" 'gud-stepi
+   "d n" 'gud-next
+   "d N" 'gud-nexti
    "e" 'find-file
    "b" 'switch-to-buffer
    "k" 'kill-buffer
@@ -298,8 +296,6 @@
    ;; flycheck keybindings
    "f h" 'flycheck-previous-error
    "f l" 'flycheck-next-error
-   ;; disassemble keybindings
-   "d e" 'disaster
    )
 
 
@@ -330,32 +326,6 @@
 (require 'flycheck)
 (global-flycheck-mode)
 
-;; CMake-utils
-(unless (package-installed-p 'cpputils-cmake)
-  (package-install 'cpputils-cmake))
-(require 'cpputils-cmake)
-
-(add-hook 'c-mode-common-hook
-		  (lambda ()
-			(if (derived-mode-p 'c-mode 'c++-mode)
-				(cppcm-reload-all)
-			  )))
-;; OPTIONAL, avoid typing full path when starting gdb
-(global-set-key (kbd "C-c C-g")
-				'(lambda ()(interactive) (gud-gdb (concat "gdb -i=mi --fullname " (cppcm-get-exe-path-current-buffer)))))
-(evil-leader/set-key(kbd "d d")
-				'(lambda ()(interactive) (gdb (concat "gdb -i=mi " (cppcm-get-exe-path-current-buffer) ))))
-(evil-leader/set-key(kbd "d b") 'gdb-toggle-breakpoint)
-;; OPTIONAL, some users need specify extra flags forwarded to compiler
-(setq cppcm-extra-preprocss-flags-from-user '("-I/usr/src/linux/include" "-DNDEBUG"))
-;; Avoid system files scan
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (if (derived-mode-p 'c-mode 'c++-mode)
-                (if  (not (or (string-match "^/usr/local/include/.*" buffer-file-name)
-                              (string-match "^/usr/src/linux/include/.*" buffer-file-name)))
-                    (cppcm-reload-all))
-              )))
 
 ;; LSP mode
 
@@ -417,7 +387,7 @@
  '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
    (quote
-	(cpputils-cmake glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+	(glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
