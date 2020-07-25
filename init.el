@@ -412,7 +412,7 @@
 (add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
 
 (setq backup-directory-alist `(("." . "~/.saves")))
-(setq auto-save-file-name-transforms `(("." . "~/.saves")))
+(setq auto-save-file-name-transforms `(("." "~/.saves" t)))
 
 (setq backup-by-copying t)
 
