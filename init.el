@@ -105,7 +105,7 @@
 (setq which-key-popup-type 'minibuffer)
 
 (setq which-key-idle-delay 2)
-(setq which-key-idle-secondary-delay 0.05)
+(setq which-key-idle-secondary-delay 1.15)
 (which-key-mode)
 ;; Enable Ivy
 (unless (package-installed-p 'ivy)
@@ -240,9 +240,9 @@
 
 (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build"))
 
-(add-hook 'c-mode-hook    'cmake-ide-maybe-start-rdm)
-(add-hook 'c++-mode-hook  'cmake-ide-maybe-start-rdm)
-(add-hook 'objc-mode-hook 'cmake-ide-maybe-start-rdm)
+;;(add-hook 'c-mode-hook    'cmake-ide-maybe-start-rdm)
+;;(add-hook 'c++-mode-hook  'cmake-ide-maybe-start-rdm)
+;;(add-hook 'objc-mode-hook 'cmake-ide-maybe-start-rdm)
 
 ;; Company keybindings
 
@@ -259,12 +259,15 @@
 (evil-leader/set-key
    "p" 'projectile-command-map
    "d d" 'projectile-run-gdb
-   "d b" 'gdb-toggle-breakpoint
+   "d b s" 'gud-break
+   "d b r" 'gud-remove
    "d a" 'gdb-display-disassembly-buffer
    "d s" 'gud-step
    "d S" 'gud-stepi
    "d n" 'gud-next
    "d N" 'gud-nexti
+   "d c" 'gud-cont
+   "d r" 'gud-run
    "e" 'find-file
    "b" 'switch-to-buffer
    "k" 'kill-buffer
@@ -303,8 +306,59 @@
 
 ;; Debug
 (setq gdb-show-main t)
-(setq gdb-many-windows 1)
+(setq gdb-many-windows nil)
 
+
+;; SO copypaste: https://stackoverflow.com/questions/3860028/customizing-emacs-gdb
+(defun set-gdb-layout(&optional c-buffer)
+  (if (not c-buffer)
+      (setq c-buffer (window-buffer (selected-window)))) ;; save current buffer
+
+  ;; from http://stackoverflow.com/q/39762833/846686
+  (set-window-dedicated-p (selected-window) nil) ;; unset dedicate state if needed
+  (switch-to-buffer gud-comint-buffer)
+  (delete-other-windows) ;; clean all
+
+  (let* (
+         (w-source (selected-window)) ;; left top
+         (w-gdb (split-window w-source nil 'right)) ;; right bottom
+         (w-locals (split-window w-gdb nil 'above)) ;; right middle bottom
+         (w-stack (split-window w-locals nil 'above)) ;; right middle top
+         (w-breakpoints (split-window w-stack nil 'above)) ;; right top
+         (w-io (split-window w-source (floor(* 0.9 (window-body-height)))
+                             'below)) ;; left bottom
+		 (w-disassembly (split-window w-gdb nil 'right))
+         )
+    (set-window-buffer w-io (gdb-get-buffer-create 'gdb-inferior-io))
+    (set-window-dedicated-p w-io t)
+    (set-window-buffer w-breakpoints (gdb-get-buffer-create 'gdb-breakpoints-buffer))
+    (set-window-dedicated-p w-breakpoints t)
+    (set-window-buffer w-locals (gdb-get-buffer-create 'gdb-locals-buffer))
+    (set-window-dedicated-p w-locals t)
+    (set-window-buffer w-stack (gdb-get-buffer-create 'gdb-stack-buffer))
+    (set-window-dedicated-p w-stack t)
+	(set-window-buffer w-disassembly (gdb-get-buffer-create 'gdb-disassembly-buffer))
+
+    (set-window-buffer w-gdb gud-comint-buffer)
+
+    (select-window w-source)
+    (set-window-buffer w-source c-buffer)
+    ))
+
+(defadvice gdb (around args activate)
+  "Change the way to gdb works."
+  (setq global-config-editing (current-window-configuration)) ;; to restore: (set-window-configuration c-editing)
+  (let (
+        (c-buffer (window-buffer (selected-window))) ;; save current buffer
+        )
+    ad-do-it
+    (set-gdb-layout c-buffer))
+  )
+
+(defadvice gdb-reset (around args activate)
+  "Change the way to gdb exit."
+  ad-do-it
+  (set-window-configuration global-config-editing))
 
 
 ;; Python
@@ -339,8 +393,6 @@
 (defvar lsp-language-id-congiguration
   '(
 	(python-mode . "python")
-  	(c-mode . "c")
-  	(c++-mode . "c++")
 	))
   
 
@@ -350,17 +402,6 @@
 	:major-modes '(python-mode)
 	:server-id 'pyls))
 
-(lsp-register-client
- (make-lsp-client
-	:new-connection (lsp-stdio-connection "clangd")
-	:major-modes '(c-mode)
-	:server-id 'clangd))
-
-(lsp-register-client
- (make-lsp-client
-	:new-connection (lsp-stdio-connection "clangd")
-	:major-modes '(c++-mode)
-	:server-id 'clangd))
 
 (add-hook 'python-mode-hook 'lsp)
 
@@ -371,6 +412,7 @@
 (add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
 
 (setq backup-directory-alist `(("." . "~/.saves")))
+(setq auto-save-file-name-transforms `(("." . "~/.saves")))
 
 (setq backup-by-copying t)
 
@@ -387,7 +429,8 @@
  '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
    (quote
-	(glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))))
+	(glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil)))
+ '(send-mail-function (quote mailclient-send-it)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
