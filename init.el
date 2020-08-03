@@ -327,7 +327,7 @@
          (w-breakpoints (split-window w-stack nil 'above)) ;; right top
          (w-io (split-window w-source (floor(* 0.9 (window-body-height)))
                              'below)) ;; left bottom
-		 (w-disassembly (split-window w-gdb nil 'right))
+		 ;;(w-disassembly (split-window w-gdb nil 'right))
          )
     (set-window-buffer w-io (gdb-get-buffer-create 'gdb-inferior-io))
     (set-window-dedicated-p w-io t)
@@ -337,7 +337,7 @@
     (set-window-dedicated-p w-locals t)
     (set-window-buffer w-stack (gdb-get-buffer-create 'gdb-stack-buffer))
     (set-window-dedicated-p w-stack t)
-	(set-window-buffer w-disassembly (gdb-get-buffer-create 'gdb-disassembly-buffer))
+	;;(set-window-buffer w-disassembly (gdb-get-buffer-create 'gdb-disassembly-buffer))
 
     (set-window-buffer w-gdb gud-comint-buffer)
 
