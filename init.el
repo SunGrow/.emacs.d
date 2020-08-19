@@ -6,9 +6,11 @@
 
 ;;; Code:
 
+(setq comp-deferred-compilation t)
 ;; Personal Info
 (setq user-full-name "Lev Polyakov"
       user-mail-address "SunGrow@tuta.io")
+(let ((file-name-handler-alist nil)) "init.el") ; speed up the load
 
 ;; Set up package.el to work with MELPA
 (require 'package)
@@ -17,8 +19,18 @@
 			 ("melpa-stable" . "https://stable.melpa.org/packages/")
 			 ("org" . "http://orgmode.org/elpa")))
 (package-initialize)
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
 (unless package-archive-contents (package-refresh-contents))
+(eval-when-compile
+  (require 'use-package))
+(require 'bind-key)
 
+(use-package benchmark-init
+  :ensure t
+  :config
+  ;; To disable collection of benchmark data after init is done.
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
 ;;; Look and Feel
 
 ;; Font
@@ -50,215 +62,73 @@
 
 ;; Startup Buffer to blanc buffer screen
 (setq inhibit-startup-screen t)
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024)) ; 1mb
 
 ;; Theme init
-(unless (package-installed-p 'zenburn-theme)
-  (package-install 'zenburn-theme))
-(require 'zenburn-theme)
+(use-package zenburn-theme
+  :ensure t
+  :init
+  
+  ;; use variable-pitch fonts for some headings and titles
+  (setq zenburn-use-variable-pitch t)
+  
+  ;; scale headings in org-mode
+  (setq zenburn-scale-org-headlines t)
+  
+  ;; scale headings in outline-mode
+  (setq zenburn-scale-outline-headlines t)
+  
+  (setq zenburn-override-colors-alist
+        '(
+      	("zenburn-fg"       . "#DCDCCC") ; Menu text
+        ("zenburn-fg+1"     . "#FFFFCF") ; Cursor
+  
+        ("zenburn-bg-1"     . "#7F7460") ; Status line + Selection
+        ("zenburn-bg"       . "#31312D") ; Main BG
+        ("zenburn-bg+1"     . "#31312D") ; Left and Right borders
+      	("zenburn-yellow"   . "#F1E0AF") ; Status line curr file name and Menu Highlight
+      	("zenburn-green-2"  . "#8F7B3F") ; Comment semicolumn
+      	("zenburn-green"    . "#8F8B3B") ; Comment text
+      	("zenburn-green+1"  . "#0F0F0F") ; Status line Side text
+        ))
+  :config
+  ;; Set Theme
+  (load-theme 'zenburn t)
+  )
 
-;; use variable-pitch fonts for some headings and titles
-(setq zenburn-use-variable-pitch t)
 
-;; scale headings in org-mode
-(setq zenburn-scale-org-headlines t)
+;; Transparency/Opacity
 
-;; scale headings in outline-mode
-(setq zenburn-scale-outline-headlines t)
-
-(setq zenburn-override-colors-alist
-      '(
-    	("zenburn-fg"       . "#DCDCCC") ; Menu text
-      	("zenburn-fg+1"     . "#FFFFCF") ; Cursor
-
-      	("zenburn-bg-1"     . "#7F7460") ; Status line + Selection
-      	("zenburn-bg"       . "#31312D") ; Main BG
-      	("zenburn-bg+1"     . "#3D3D3A") ; Left and Right borders
-    	("zenburn-yellow"   . "#F1E0AF") ; Status line curr file name and Menu Highlight
-    	("zenburn-green-2"  . "#8F7B3F") ; Comment semicolumn
-    	("zenburn-green"    . "#8F8B3B") ; Comment text
-    	("zenburn-green+1"  . "#0F0F0F") ; Status line Side text
-       	))
-;; Set Theme
-(load-theme 'zenburn t)
+(set-frame-parameter (selected-frame) 'alpha '(85 50))
+(add-to-list 'default-frame-alist '(alpha 85 50))
 
 ;; General Keybindings
 (global-set-key (kbd "C-x C-b") 'buffer-menu)
+(define-key vc-prefix-map (kbd "p") #'vc-pull)
 
 ;; Feel
 
+;; Set move the backups to a separate directory
+(setq backup-directory-alist `(("." . "~/.saves")))
+(setq auto-save-file-name-transforms `((".*" "~/.saves/" t)))
+(setq backup-by-copying t)
+(global-auto-revert-mode t)
+
 ;; Enable Evil
-(unless (package-installed-p 'evil)
-  (package-install 'evil))
-(unless (package-installed-p 'evil-leader)
-  (package-install 'evil-leader))
-
-(require 'evil)
-(require 'evil-leader)
-
-(evil-leader/set-leader "<SPC>")
-(global-evil-leader-mode t)
-(evil-mode 1)
-
-;; Enable which key
-(unless (package-installed-p 'which-key)
-  (package-install 'which-key))
-(setq which-key-popup-type 'minibuffer)
-
-(setq which-key-idle-delay 2)
-(setq which-key-idle-secondary-delay 1.15)
-(which-key-mode)
-;; Enable Ivy
-(unless (package-installed-p 'ivy)
-  (package-install 'ivy))
-(require 'ivy)
-(ivy-mode 1) ; Because I don't like helm
-
-;; Ivy keybindings
-(define-key ivy-minibuffer-map (kbd "C-k") #'ivy-previous-line)
-(define-key ivy-minibuffer-map (kbd "C-j") #'ivy-next-line)
-(define-key ivy-minibuffer-map (kbd "C-l") #'ivy-alt-done)
-
-(define-key ivy-minibuffer-map (kbd "C-h") #'ivy-kill-line)
-(define-key ivy-switch-buffer-map (kbd "C-h") #'ivy-switch-buffer-kill)
-(define-key ivy-switch-buffer-map (kbd "C-k") #'ivy-previous-line)
-
-;;; General Project Development
-
-;; Enable Projectile
-(unless (package-installed-p 'projectile)
-  (package-install 'projectile))
-(require 'projectile)
-(projectile-mode +1)
-
-(setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents" "~/Projects/"))
-(setq projectile-completion-system 'ivy)
-
-(unless (package-installed-p 'company)
-  (package-install 'company))
-
-(unless (package-installed-p 'cmake-mode)
-  (package-install 'cmake-mode))
-
-(unless (package-installed-p 'elpy)
-  (package-install 'elpy))
-
-(unless (package-installed-p 'flycheck)
-  (package-install 'flycheck))
-
-(unless (package-installed-p 'markdown-mode)
-  (package-install 'markdown-mode))
-
-(unless (package-installed-p 'lsp-mode)
-  (package-install 'lsp-mode))
-
-(unless (package-installed-p 'glsl-mode)
-  (package-install 'glsl-mode))
-
-(unless (package-installed-p 'auto-complete-clang)
-  (package-install 'auto-complete-clang))
-
-;; MaGit
-;; Too slow on Windows to use.
-
-
-;; CMake
-
-(require 'cmake-mode)
-
-;; Irony
-
-(unless (package-installed-p 'irony)
-  (package-install 'irony))
-(unless (package-installed-p 'company-irony)
-  (package-install 'company-irony))
-(unless (package-installed-p 'company-irony-c-headers)
-  (package-install 'company-irony-c-headers))
-(unless (package-installed-p 'flycheck-irony)
-  (package-install 'flycheck-irony))
-(require 'irony)
-(require 'company-irony)
-(require 'company-irony-c-headers)
-(require 'flycheck-irony)
-
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
-(add-hook 'objc-mode-hook 'irony-mode)
-
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-
-(eval-after-load 'flycheck
-  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
-
-(eval-after-load 'company
-  '(add-to-list 'company-backends 'company-irony))
-
-;; Windows performance tweaks
-
-(when (boundp 'w32-pipe-read-delay)
-  (setq w32-pipe-read-delay 0))
-
-;; Set the buffer size to 64K on Windows (from the original 4K)
-(when (boundp 'w32-pipe-buffer-size)
-  (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
-
-
-;; Company mode
-
-(add-hook 'after-init-hook 'global-company-mode)
-(require 'company)
-(setq company-minimum-prefix-length 1
-      company-idle-delay 0.0) ;; default is 0.2
-
-(eval-after-load 'company
-  '(add-to-list 'company-backends 'company-irony-c-headers))
-
-;; RTags
-
-(unless (package-installed-p 'rtags)
-  (package-install 'rtags))
-(unless (package-installed-p 'ivy-rtags)
-  (package-install 'ivy-rtags))
-(unless (package-installed-p 'flycheck-rtags)
-  (package-install 'flycheck-rtags))
-(unless (package-installed-p 'company-rtags)
-  (package-install 'company-rtags))
-
-(require 'rtags)
-(require 'ivy-rtags)
-(require 'flycheck-rtags)
-(require 'company-rtags)
-
-(setq rtags-display-result-backend 'ivy)
-(push 'company-rtags company-backends)
-
-;; CMake-IDE
-
-(unless (package-installed-p 'cmake-ide)
-  (package-install 'cmake-ide))
-(require 'cmake-ide)
-(cmake-ide-setup)
-
-(setq cmake-ide-build-dir (concat cmake-ide-project-dir "build"))
-
-;;(add-hook 'c-mode-hook    'cmake-ide-maybe-start-rdm)
-;;(add-hook 'c++-mode-hook  'cmake-ide-maybe-start-rdm)
-;;(add-hook 'objc-mode-hook 'cmake-ide-maybe-start-rdm)
-
-;; Company keybindings
-
-(define-key company-active-map (kbd "C-j") #'company-select-next)
-(define-key company-active-map (kbd "C-k") #'company-select-previous)
-
-
-;; Projectile keybindings
-
-(global-unset-key (kbd "C-p"))
-(define-key evil-normal-state-map (kbd "C-p") nil)
-(define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
-
-(evil-leader/set-key
-   "p" 'projectile-command-map
-   "d d" 'projectile-run-gdb
+(use-package evil
+  :ensure t
+  :config
+  (evil-mode 1)
+  )
+(use-package evil-leader
+  :after (evil)
+  :ensure t
+  :init
+  (global-evil-leader-mode t)
+  :config
+  (evil-leader/set-leader "<SPC>")
+  (evil-leader/set-key
    "d b s" 'gud-break
    "d b r" 'gud-remove
    "d a" 'gdb-display-disassembly-buffer
@@ -273,11 +143,211 @@
    "k" 'kill-buffer
    "w" 'evil-window-map
    "v" 'vc-prefix-map
-   ;; lsp keybindings
+   )
+  )
+
+
+;; Enable which key
+(use-package which-key
+  :ensure t
+  :config
+  (setq which-key-popup-type 'minibuffer)
+  (setq which-key-idle-delay 2)
+  (setq which-key-idle-secondary-delay 1.25)
+  (which-key-mode)
+  )
+
+;; Enable Ivy
+(use-package ivy
+  :ensure t
+  :config
+  (define-key ivy-minibuffer-map (kbd "C-k") #'ivy-previous-line)
+  (define-key ivy-minibuffer-map (kbd "C-j") #'ivy-next-line)
+  (define-key ivy-minibuffer-map (kbd "C-l") #'ivy-alt-done)
+  
+  (define-key ivy-minibuffer-map (kbd "C-h") #'ivy-kill-line)
+  (define-key ivy-switch-buffer-map (kbd "C-h") #'ivy-switch-buffer-kill)
+  (define-key ivy-switch-buffer-map (kbd "C-k") #'ivy-previous-line)
+  (ivy-mode 1) ; Because I don't like helm
+  )
+
+
+
+;;; General Project Development
+
+;; Enable Projectile
+(use-package projectile
+  :ensure t
+  :config
+  (projectile-mode +1)
+  (setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents" "~/Projects/"))
+  (global-unset-key (kbd "C-p"))
+  (define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
+  (setq projectile-completion-system 'ivy)
+  (define-key evil-normal-state-map (kbd "C-p") nil)
+
+  (evil-leader/set-key
+   "p" 'projectile-command-map
+   "d d" 'projectile-run-gdb
+   )
+)
+
+;; Company mode
+(use-package company
+  :ensure t
+  :config
+  (setq company-minimum-prefix-length 1
+    company-idle-delay 0.0) ;; default is 0.2
+  (define-key company-active-map (kbd "C-j") #'company-select-next)
+  (define-key company-active-map (kbd "C-k") #'company-select-previous)
+  (add-hook 'after-init-hook 'global-company-mode)
+  )
+
+(use-package elpy
+  :ensure t
+  :init
+  (add-hook 'python-mode-hook
+      (lambda ()
+        (setq indent-tabs-mode t)
+        (setq tab-width 4)
+        (setq python-indent-offset 4)))
+  :config
+  (elpy-enable)
+  )
+
+(use-package flycheck
+  :ensure t
+  :config
+  (global-flycheck-mode)
+  (evil-leader/set-key
+   "f h" 'flycheck-previous-error
+   "f l" 'flycheck-next-error
+   )
+  )
+
+(use-package markdown-mode
+  :ensure t
+  )
+
+;; GLSL
+(use-package glsl-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.vert\\'" . glsl-mode))
+  (add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
+  )
+
+;; LSP mode
+(use-package lsp-mode
+  :ensure t
+  :config
+  (defvar lsp-language-id-congiguration
+    '(
+  	(python-mode . "python")
+	(c-mode . "c")
+	(c++-mode . "c++")
+  	))
+  (lsp-register-client
+   (make-lsp-client
+  	:new-connection (lsp-stdio-connection "pyls")
+  	:major-modes '(python-mode)
+  	:server-id 'pyls)
+   )
+
+  (lsp-register-client
+   (make-lsp-client
+	:new-connection (lsp-stdio-connection "clangd")
+	:major-modes '(c-mode c++-mode cc-mode objc-mode)
+	:priority 1
+	:server-id 'clangd
+	)
+   )
+  (setq lsp-clients-clangd-args '("--cross-file-rename" "--clang-tidy" "--compile-commands-dir=build" "--background-index" "-j=8"))
+  
+
+  (evil-leader/set-key
    "l l" 'lsp
    "l r" 'lsp-rename
    "g d" 'lsp-find-definition
-   ;; rtags keybindings
+   "g D" 'lsp-find-references
+   "g r" 'lsp-rename
+   )
+  :hook
+  (python-mode . lsp)
+  (c-mode . lsp)
+  (c++-mode . lsp)
+  )
+
+(use-package lsp-ivy
+  :ensure t
+  :config
+  (evil-leader/set-key
+	"l s" 'lsp-ivy-workspace-symbol
+	)
+  )
+
+
+(use-package auto-complete-clang
+  :ensure t
+  )
+
+
+;; MaGit
+;; Too slow on Windows to use.
+
+
+;; CMake
+
+(use-package cmake-mode
+  :ensure t
+  )
+
+;; Irony
+
+(use-package irony
+  :ensure t
+  :config
+  ;; Set the buffer size to 64K on Windows (from the original 4K)
+  (when (boundp 'w32-pipe-buffer-size)
+    (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+  (when (boundp 'w32-pipe-read-delay)
+    (setq w32-pipe-read-delay 0))
+  :hook
+  (c++-mode . irony-mode)
+  (c-mode . irony-mode)
+  (objc-mode . irony-mode)
+  )
+(use-package company-irony
+  :after (company irony)
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-irony)
+  )
+(use-package company-irony-c-headers
+  :after (company-irony)
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-irony-c-headers)
+  )
+(use-package flycheck-irony
+  :after (flycheck irony)
+  :ensure t
+  :config
+  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
+  )
+
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+
+
+
+;; RTags
+
+(use-package rtags
+  :ensure t
+  :config
+
+  (evil-leader/set-key
    "r h" 'rtags-location-stack-back
    "r l" 'rtags-location-stack-forward
    "r p" 'rtags-previous-match
@@ -289,20 +359,50 @@
    "r >" 'rtags-find-symbol
    "r <" 'rtags-find-references
    "r i" 'rtags-symbol-info
-   ;; cmake-ide keybindings
-   "i i" 'cmake-ide-maybe-start-rdm
-   "i r" 'cmake-ide-maybe-run-cmake
-   "i c" 'cmake-ide-compile
-   "i m d" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Debug") (message "CMake build mode set to: Debug"))
-   "i m r" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Release") (message "CMake build mode set to: Release"))
-   "i m i" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=RelWithDebInfo") (message "CMake build mode set to: RelWithDebInfo"))
-   ;; flycheck keybindings
-   "f h" 'flycheck-previous-error
-   "f l" 'flycheck-next-error
    )
+  )
+(use-package ivy-rtags
+  :ensure t
+  :after (ivy rtags)
+  :config
+  (setq rtags-display-result-backend 'ivy)
+
+  )
+(use-package flycheck-rtags
+  :ensure t
+  :after (flycheck rtags)
+  )
+(use-package company-rtags
+  :ensure t
+  :after (company rtags)
+  :config
+  (push 'company-rtags company-backends)
+  )
 
 
-(define-key vc-prefix-map (kbd "p") #'vc-pull)
+;; CMake-IDE
+
+(use-package cmake-ide
+  :ensure t
+  :after (rtags flycheck auto-complete-clang company-clang irony)
+  :config
+  (cmake-ide-setup)
+  (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build"))
+
+  (evil-leader/set-key
+   	;; cmake-ide keybindings
+   	"i i" 'cmake-ide-maybe-start-rdm
+   	"i r" 'cmake-ide-maybe-run-cmake
+   	"i c" 'cmake-ide-compile
+   	"i m d" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Debug") (message "CMake build mode set to: Debug"))
+   	"i m r" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Release") (message "CMake build mode set to: Release"))
+   	"i m i" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=RelWithDebInfo") (message "CMake build mode set to: RelWithDebInfo"))
+	)
+  )
+
+
+
+
 
 ;; Debug
 (setq gdb-show-main t)
@@ -361,62 +461,11 @@
   (set-window-configuration global-config-editing))
 
 
-;; Python
-
-(require 'elpy)
-(elpy-enable)
-
-
-(add-hook 'python-mode-hook
-      (lambda ()
-        (setq indent-tabs-mode t)
-        (setq tab-width 4)
-        (setq python-indent-offset 4)))
 
 
 
-;; FlyCheck
-
-(require 'flycheck)
-(global-flycheck-mode)
 
 
-;; LSP mode
-
-(setq gc-cons-threshold 100000000)
-
-(setq read-process-output-max (* 1024 1024)) ; 1mb
-
-
-(require 'lsp-mode)
-
-(defvar lsp-language-id-congiguration
-  '(
-	(python-mode . "python")
-	))
-  
-
-(lsp-register-client
- (make-lsp-client
-	:new-connection (lsp-stdio-connection "pyls")
-	:major-modes '(python-mode)
-	:server-id 'pyls))
-
-
-(add-hook 'python-mode-hook 'lsp)
-
-;; GLSL
-
-(require 'glsl-mode)
-(add-to-list 'auto-mode-alist '("\\.vert\\'" . glsl-mode))
-(add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
-
-(setq backup-directory-alist `(("." . "~/.saves")))
-(setq auto-save-file-name-transforms `((".*" "~/.saves/" t)))
-
-(setq backup-by-copying t)
-
-(global-auto-revert-mode t)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -424,13 +473,11 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   (quote
-	("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default)))
+   '("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default))
  '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
-   (quote
-	(glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil)))
- '(send-mail-function (quote mailclient-send-it)))
+   '(benchmark-init glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))
+ '(send-mail-function 'mailclient-send-it))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -441,3 +488,4 @@
 (provide 'init)
 
 ;;; Init ends here
+
