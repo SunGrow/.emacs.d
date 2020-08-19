@@ -31,6 +31,13 @@
   :config
   ;; To disable collection of benchmark data after init is done.
   (add-hook 'after-init-hook 'benchmark-init/deactivate))
+
+
+;; Startup Buffer to blanc buffer screen
+(setq inhibit-startup-screen t)
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024)) ; 1mb
+
 ;;; Look and Feel
 
 ;; Font
@@ -60,16 +67,10 @@
 ;; Turn off the beep
 (setq visible-bell 1)
 
-;; Startup Buffer to blanc buffer screen
-(setq inhibit-startup-screen t)
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024)) ; 1mb
-
 ;; Theme init
 (use-package zenburn-theme
   :ensure t
   :init
-  
   ;; use variable-pitch fonts for some headings and titles
   (setq zenburn-use-variable-pitch t)
   
@@ -92,7 +93,6 @@
       	("zenburn-green"    . "#8F8B3B") ; Comment text
       	("zenburn-green+1"  . "#0F0F0F") ; Status line Side text
         ))
-  :config
   ;; Set Theme
   (load-theme 'zenburn t)
   )
@@ -115,18 +115,10 @@
 (setq backup-by-copying t)
 (global-auto-revert-mode t)
 
-;; Enable Evil
-(use-package evil
-  :ensure t
-  :config
-  (evil-mode 1)
-  )
 (use-package evil-leader
-  :after (evil)
   :ensure t
   :init
   (global-evil-leader-mode t)
-  :config
   (evil-leader/set-leader "<SPC>")
   (evil-leader/set-key
    "d b s" 'gud-break
@@ -146,11 +138,17 @@
    )
   )
 
+;; Enable Evil
+(use-package evil
+  :ensure t
+  :init
+  (evil-mode 1)
+  )
 
 ;; Enable which key
 (use-package which-key
   :ensure t
-  :config
+  :init
   (setq which-key-popup-type 'minibuffer)
   (setq which-key-idle-delay 2)
   (setq which-key-idle-secondary-delay 1.25)
@@ -171,6 +169,15 @@
   (ivy-mode 1) ; Because I don't like helm
   )
 
+(use-package ivy-xref
+  :ensure t
+  :after (ivy)
+  :init
+  (when (>= emacs-major-version 27)
+	(setq xref-show-definitions-function #'ivy-xref-show-defs)
+	)
+  (setq xref-show-xrefs-function #'ivy-xref-show-xrefs)
+  )
 
 
 ;;; General Project Development
@@ -178,26 +185,28 @@
 ;; Enable Projectile
 (use-package projectile
   :ensure t
-  :config
-  (projectile-mode +1)
-  (setq projectile-project-search-path '("~/Documents/" "/Users/LazyF/Documents" "~/Projects/"))
-  (global-unset-key (kbd "C-p"))
-  (define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
-  (setq projectile-completion-system 'ivy)
+  :init
   (define-key evil-normal-state-map (kbd "C-p") nil)
-
+  (global-unset-key (kbd "C-p"))
   (evil-leader/set-key
    "p" 'projectile-command-map
    "d d" 'projectile-run-gdb
+   "p c" 'projectile-compile-project
    )
+  (setq projectile-completion-system 'ivy)
+  (setq projectile-project-search-path '("~/Documents/" "~/Projects/"))
+  (projectile-mode +1)
+  :config
+  (define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
 )
 
 ;; Company mode
 (use-package company
   :ensure t
-  :config
+  :init
   (setq company-minimum-prefix-length 1
     company-idle-delay 0.0) ;; default is 0.2
+  :config
   (define-key company-active-map (kbd "C-j") #'company-select-next)
   (define-key company-active-map (kbd "C-k") #'company-select-previous)
   (add-hook 'after-init-hook 'global-company-mode)
@@ -211,18 +220,17 @@
         (setq indent-tabs-mode t)
         (setq tab-width 4)
         (setq python-indent-offset 4)))
-  :config
   (elpy-enable)
   )
 
 (use-package flycheck
   :ensure t
-  :config
-  (global-flycheck-mode)
+  :init
   (evil-leader/set-key
    "f h" 'flycheck-previous-error
    "f l" 'flycheck-next-error
    )
+  (global-flycheck-mode)
   )
 
 (use-package markdown-mode
@@ -232,21 +240,38 @@
 ;; GLSL
 (use-package glsl-mode
   :ensure t
-  :config
+  :init
   (add-to-list 'auto-mode-alist '("\\.vert\\'" . glsl-mode))
   (add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
   )
 
+;; CMake
+
+(use-package cmake-mode
+  :ensure t
+  )
+
 ;; LSP mode
 (use-package lsp-mode
+  :after (projectile)
   :ensure t
-  :config
+  :init
+  (evil-leader/set-key
+   "l l" 'lsp
+   "l r" 'lsp-rename
+   "g d" 'lsp-find-definition
+   "g D" 'lsp-find-references
+   )
+
   (defvar lsp-language-id-congiguration
     '(
   	(python-mode . "python")
 	(c-mode . "c")
 	(c++-mode . "c++")
   	))
+  :config
+  (lsp-enable-which-key-integration)
+
   (lsp-register-client
    (make-lsp-client
   	:new-connection (lsp-stdio-connection "pyls")
@@ -262,143 +287,135 @@
 	:server-id 'clangd
 	)
    )
-  (setq lsp-clients-clangd-args '("--cross-file-rename" "--clang-tidy" "--compile-commands-dir=build" "--background-index" "-j=8"))
-  
 
-  (evil-leader/set-key
-   "l l" 'lsp
-   "l r" 'lsp-rename
-   "g d" 'lsp-find-definition
-   "g D" 'lsp-find-references
-   "g r" 'lsp-rename
+  (setq lsp-clients-clangd-args '("--cross-file-rename" "--clang-tidy" "--compile-commands-dir=build" "--background-index" "-j=8"))
+  (use-package lsp-ivy
+   	:after (lsp ivy)
+    :ensure t
+  	:init
+    (evil-leader/set-key
+   	"l s" 'lsp-ivy-workspace-symbol
+   	)
    )
+
   :hook
   (python-mode . lsp)
   (c-mode . lsp)
   (c++-mode . lsp)
   )
 
-(use-package lsp-ivy
-  :ensure t
-  :config
-  (evil-leader/set-key
-	"l s" 'lsp-ivy-workspace-symbol
-	)
-  )
 
-
-(use-package auto-complete-clang
-  :ensure t
-  )
+;;(use-package auto-complete-clang
+;;  :ensure t
+;;  )
 
 
 ;; MaGit
 ;; Too slow on Windows to use.
 
 
-;; CMake
-
-(use-package cmake-mode
-  :ensure t
-  )
 
 ;; Irony
 
-(use-package irony
-  :ensure t
-  :config
-  ;; Set the buffer size to 64K on Windows (from the original 4K)
-  (when (boundp 'w32-pipe-buffer-size)
-    (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
-  (when (boundp 'w32-pipe-read-delay)
-    (setq w32-pipe-read-delay 0))
-  :hook
-  (c++-mode . irony-mode)
-  (c-mode . irony-mode)
-  (objc-mode . irony-mode)
-  )
-(use-package company-irony
-  :after (company irony)
-  :ensure t
-  :config
-  (add-to-list 'company-backends 'company-irony)
-  )
-(use-package company-irony-c-headers
-  :after (company-irony)
-  :ensure t
-  :config
-  (add-to-list 'company-backends 'company-irony-c-headers)
-  )
-(use-package flycheck-irony
-  :after (flycheck irony)
-  :ensure t
-  :config
-  (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
-  )
-
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-
-
-
+;;(use-package irony
+;;  :ensure t
+;;  :init
+;;  ;; Set the buffer size to 64K on Windows (from the original 4K)
+;;  (when (boundp 'w32-pipe-buffer-size)
+;;    (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+;;  (when (boundp 'w32-pipe-read-delay)
+;;    (setq w32-pipe-read-delay 0))
+;;  :config
+;;
+;;  (use-package company-irony
+;;    :after (company irony)
+;;    :ensure t
+;;    :config
+;;    (add-to-list 'company-backends 'company-irony)
+;;    )
+;;  (use-package company-irony-c-headers
+;;    :after (company-irony)
+;;    :ensure t
+;;    :config
+;;    (add-to-list 'company-backends 'company-irony-c-headers)
+;;    )
+;;  (use-package flycheck-irony
+;;    :after (flycheck irony)
+;;    :ensure t
+;;    :config
+;;    (add-hook 'flycheck-mode-hook #'flycheck-irony-setup)
+;;    )
+;;
+;;  :hook
+;;  (c++-mode . irony-mode)
+;;  (c-mode . irony-mode)
+;;  (objc-mode . irony-mode)
+;;  (irony-mode . irony-cdb-autosetup-compile-options)
+;;  )
+;;
+;;
+;;
+;;
 
 ;; RTags
-
-(use-package rtags
-  :ensure t
-  :config
-
-  (evil-leader/set-key
-   "r h" 'rtags-location-stack-back
-   "r l" 'rtags-location-stack-forward
-   "r p" 'rtags-previous-match
-   "r n" 'rtags-next-match
-   "r r" 'rtags-rename-symbol
-   "r ." 'rtags-find-symbol-at-point
-   "r ," 'rtags-find-references-at-point
-   "r /" 'rtags-find-all-references-at-point
-   "r >" 'rtags-find-symbol
-   "r <" 'rtags-find-references
-   "r i" 'rtags-symbol-info
-   )
-  )
-(use-package ivy-rtags
-  :ensure t
-  :after (ivy rtags)
-  :config
-  (setq rtags-display-result-backend 'ivy)
-
-  )
-(use-package flycheck-rtags
-  :ensure t
-  :after (flycheck rtags)
-  )
-(use-package company-rtags
-  :ensure t
-  :after (company rtags)
-  :config
-  (push 'company-rtags company-backends)
-  )
-
-
-;; CMake-IDE
-
-(use-package cmake-ide
-  :ensure t
-  :after (rtags flycheck auto-complete-clang company-clang irony)
-  :config
-  (cmake-ide-setup)
-  (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build"))
-
-  (evil-leader/set-key
-   	;; cmake-ide keybindings
-   	"i i" 'cmake-ide-maybe-start-rdm
-   	"i r" 'cmake-ide-maybe-run-cmake
-   	"i c" 'cmake-ide-compile
-   	"i m d" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Debug") (message "CMake build mode set to: Debug"))
-   	"i m r" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Release") (message "CMake build mode set to: Release"))
-   	"i m i" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=RelWithDebInfo") (message "CMake build mode set to: RelWithDebInfo"))
-	)
-  )
+;;
+;;(use-package rtags
+;;  :ensure t
+;;  :init
+;;  (evil-leader/set-key
+;;   "r h" 'rtags-location-stack-back
+;;   "r l" 'rtags-location-stack-forward
+;;   "r p" 'rtags-previous-match
+;;   "r n" 'rtags-next-match
+;;   "r r" 'rtags-rename-symbol
+;;   "r ." 'rtags-find-symbol-at-point
+;;   "r ," 'rtags-find-references-at-point
+;;   "r /" 'rtags-find-all-references-at-point
+;;   "r >" 'rtags-find-symbol
+;;   "r <" 'rtags-find-references
+;;   "r i" 'rtags-symbol-info
+;;   )
+;;  :config
+;;  (use-package ivy-rtags
+;;    :ensure t
+;;    :after (ivy rtags)
+;;    :config
+;;    (setq rtags-display-result-backend 'ivy)
+;;  
+;;    )
+;;  (use-package flycheck-rtags
+;;    :ensure t
+;;    :after (flycheck rtags)
+;;    )
+;;  (use-package company-rtags
+;;    :ensure t
+;;    :after (company rtags)
+;;    :config
+;;    (push 'company-rtags company-backends)
+;;    )
+;;  )
+;;
+;;
+;;;; CMake-IDE
+;;
+;;(use-package cmake-ide
+;;  :ensure t
+;;  :after (rtags flycheck auto-complete-clang company-clang irony)
+;;  :init
+;;  (evil-leader/set-key
+;;   	;; cmake-ide keybindings
+;;   	"i i" 'cmake-ide-maybe-start-rdm
+;;   	"i r" 'cmake-ide-maybe-run-cmake
+;;   	"i c" 'cmake-ide-compile
+;;   	"i m d" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Debug") (message "CMake build mode set to: Debug"))
+;;   	"i m r" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=Release") (message "CMake build mode set to: Release"))
+;;   	"i m i" '(lambda () (interactive) (setq cmake-ide-cmake-opts "-DCMAKE_BUILD_TYPE=RelWithDebInfo") (message "CMake build mode set to: RelWithDebInfo"))
+;;	)
+;;  :config
+;;  (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build"))
+;;  (cmake-ide-setup)
+;;
+;;  )
 
 
 
