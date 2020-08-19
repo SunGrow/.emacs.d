@@ -191,7 +191,7 @@
   (evil-leader/set-key
    "p" 'projectile-command-map
    "d d" 'projectile-run-gdb
-   "p c" 'projectile-compile-project
+   "c" 'projectile-compile-project
    )
   (setq projectile-completion-system 'ivy)
   (setq projectile-project-search-path '("~/Documents/" "~/Projects/"))
