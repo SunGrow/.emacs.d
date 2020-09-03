@@ -100,8 +100,8 @@
 
 ;; Transparency/Opacity
 
-(set-frame-parameter (selected-frame) 'alpha '(85 50))
-(add-to-list 'default-frame-alist '(alpha 85 50))
+(set-frame-parameter (selected-frame) 'alpha '(97 90))
+(add-to-list 'default-frame-alist '(alpha 97 90))
 
 ;; General Keybindings
 (global-set-key (kbd "C-x C-b") 'buffer-menu)
@@ -186,8 +186,6 @@
 (use-package projectile
   :ensure t
   :init
-  (define-key evil-normal-state-map (kbd "C-p") nil)
-  (global-unset-key (kbd "C-p"))
   (evil-leader/set-key
    "p" 'projectile-command-map
    "d d" 'projectile-run-gdb
@@ -230,11 +228,13 @@
    "f h" 'flycheck-previous-error
    "f l" 'flycheck-next-error
    )
+  (setq flycheck-checker-error-threshold 50)
   (global-flycheck-mode)
   )
 
 (use-package markdown-mode
   :ensure t
+  :defer t
   )
 
 ;; GLSL
@@ -251,9 +251,15 @@
   :ensure t
   )
 
+;; Go
+
+(use-package go-mode
+  :ensure t
+  )
+
 ;; LSP mode
 (use-package lsp-mode
-  :after (projectile)
+  :after (projectile flycheck)
   :ensure t
   :init
   (evil-leader/set-key
@@ -268,6 +274,7 @@
   	(python-mode . "python")
 	(c-mode . "c")
 	(c++-mode . "c++")
+	(go-mode . "go")
   	))
   :config
   (lsp-enable-which-key-integration)
@@ -302,6 +309,7 @@
   (python-mode . lsp)
   (c-mode . lsp)
   (c++-mode . lsp)
+  (go-mode . lsp)
   )
 
 
@@ -493,7 +501,7 @@
    '("76c5b2592c62f6b48923c00f97f74bcb7ddb741618283bdb2be35f3c0e1030e3" default))
  '(flycheck-checker-error-threshold 1024)
  '(package-selected-packages
-   '(benchmark-init glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))
+   '(go-mode benchmark-init glsl-mode markdown-mode lsp-mode evil-leader cmake-mode bind-key projectile company ivy ## zenburn-theme evil))
  '(send-mail-function 'mailclient-send-it))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
