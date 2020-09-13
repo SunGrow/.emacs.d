@@ -83,14 +83,14 @@
   (setq zenburn-override-colors-alist
         '(
       	("zenburn-fg"       . "#DCDCCC") ; Menu text
-        ("zenburn-fg+1"     . "#FFFFCF") ; Cursor
+        ("zenburn-fg+1"     . "#FFB86F") ; Cursor
   
-        ("zenburn-bg-1"     . "#7F7460") ; Status line + Selection
+        ("zenburn-bg-1"     . "#63624F") ; Status line + Selection
         ("zenburn-bg"       . "#31312D") ; Main BG
         ("zenburn-bg+1"     . "#31312D") ; Left and Right borders
       	("zenburn-yellow"   . "#F1E0AF") ; Status line curr file name and Menu Highlight
-      	("zenburn-green-2"  . "#8F7B3F") ; Comment semicolumn
-      	("zenburn-green"    . "#8F8B3B") ; Comment text
+      	("zenburn-green-2"  . "#769374") ; Comment semicolumn
+      	("zenburn-green"    . "#D89D6A") ; Comment text
       	("zenburn-green+1"  . "#0F0F0F") ; Status line Side text
         ))
   ;; Set Theme
@@ -208,6 +208,7 @@
   (define-key company-active-map (kbd "C-j") #'company-select-next)
   (define-key company-active-map (kbd "C-k") #'company-select-previous)
   (add-hook 'after-init-hook 'global-company-mode)
+  (add-hook 'evil-normal-state-entry-hook #'company-abort)
   )
 
 (use-package elpy
